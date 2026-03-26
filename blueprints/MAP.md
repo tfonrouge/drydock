@@ -45,7 +45,7 @@ Tier 0 (ZigBuild) is independent — runs in parallel with everything.
 
 | Blueprint | Status | Goal This Sprint |
 |-----------|--------|-----------------|
-| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0 done. Z.1 done (2026-03-26).~~ Next: Phase Z.2: full C library build (1 week). |
+| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0-Z.2 done (2026-03-26).~~ Next: Phase Z.3: two-phase bootstrap with .prg compilation. |
 | RefactorHvm(SUBSYSTEM) | :blue_circle: PLANNING | Begin Phase 0 (dead code removal — 680 lines, zero callers) |
 | ScalarClasses(SUBSYSTEM) | :blue_circle: PLANNING | BRIEF + DESIGN complete; begin Phase 1 once RefactorHvm Phase 0 lands |
 | ComputedGoto(SUBSYSTEM) | :blue_circle: PLANNING | BRIEF complete; implementation can proceed independently |

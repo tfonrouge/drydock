@@ -79,23 +79,26 @@ Delete `build.zig`. No other files are modified. `make` continues to work.
 
 ### Steps
 
-- [ ] **Z.2.1** Add hbvm library (45 C files). Add `-DHB_MT_VM` variant as
-  hbvmmt.
-- [ ] **Z.2.2** Add hbrtl library (207 C files, no PRG yet). Add defines
-  `-DHB_HAS_PCRE -DHB_HAS_ZLIB`.
-- [ ] **Z.2.3** Add hbmacro library (3 C files + macroy.yyc copy).
-- [ ] **Z.2.4** Add hbrdd library (20 C files) and all RDD driver sub-libraries
-  (rddntx, rddcdx, rddfpt, rddnsx, hbsix C files, hbhsx, nulsys, usrrdd).
-- [ ] **Z.2.5** Add hbcpage library (172 C files).
-- [ ] **Z.2.6** Add hblang library (39 C files).
-- [ ] **Z.2.7** Add hbdebug library (1 C file, no PRG yet).
-- [ ] **Z.2.8** Add third-party libraries (pcre: 34 files with defines,
-  zlib: 15 files with defines).
-- [ ] **Z.2.9** Add GT drivers — gtstd, gtcgi, gtpca (always), gttrm, gtxwc
-  (Linux), gtwin, gtwvt (Windows). Platform-conditional.
-- [ ] **Z.2.10** Verify: `zig build` compiles all libraries without errors.
-  Compare `ar t` output with make-built `.a` files.
-- [ ] **Z.2.11** Update blueprint artifacts.
+- [x] **Z.2.1** Add hbvm library (hvmall.c amalgamation + 24 unconditional files).
+  Add `-DHB_MT_VM` variant as hbvmmt.
+- [x] **Z.2.2** Add hbrtl library (217 C files). Add defines
+  `-DHB_HAS_PCRE -DPCRE_STATIC -DHB_HAS_ZLIB`. Add include paths for
+  `src/3rd/pcre` and `src/3rd/zlib`.
+- [x] **Z.2.3** Add hbmacro library (3 C files + macroy.c pre-generated).
+- [x] **Z.2.4** Add hbrdd library (20 C files) and 8 RDD driver sub-libraries
+  (rddntx, rddcdx, rddfpt, rddnsx, hbsix, hbhsx, nulsys, usrrdd).
+- [x] **Z.2.5** Add hbcpage library (170 C files from Makefile).
+- [x] **Z.2.6** Add hblang library (38 C files).
+- [x] **Z.2.7** Add hbdebug library (1 C file).
+- [x] **Z.2.8** Add third-party libraries: hbpcre (20 files, PCRE_STATIC +
+  SUPPORT_UTF + SUPPORT_UCP + HAVE_CONFIG_H + HAVE_STDINT_H),
+  hbzlib (15 files, HAVE_UNISTD_H on non-Windows).
+- [x] **Z.2.9** Add GT drivers — gtstd, gtcgi, gtpca (always), gttrm (Linux/BSD),
+  gtwin + gtwvt + gtgui (Windows). Platform-conditional with install.
+- [x] **Z.2.10** Verify: `zig build` compiles 26 libraries + harbour binary
+  in 5.5 seconds. All core libraries match Make output (missing only
+  hbextern which needs .prg, and gtxwc which needs X11).
+- [x] **Z.2.11** Update blueprint artifacts.
 
 ### Build verification
 
