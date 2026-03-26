@@ -1,0 +1,2 @@
+- [Always respond in English](feedback_language.md) — project language is English, regardless of user input language
+- [Drydock initiative](project_drydock.md) — codename for Harbour modernization (scalar classes, DAP, typing, traits, VM refactor)
