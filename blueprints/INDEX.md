@@ -10,7 +10,7 @@
 
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
-| Z | [ZigBuild](ZigBuild(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | -- (independent) |
+| Z | [ZigBuild](ZigBuild(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
 
 **Deliverable**: Replace 26,793 lines of GNU Make + hbmk2 with ~500-line `build.zig`. Correct incremental builds. One-command cross-compilation. 2-5x faster builds.
 
@@ -65,4 +65,5 @@
 
 | Name | Completed | Notes |
 |------|-----------|-------|
-| *(none yet)* | | |
+| ZigBuild Phase Z.0 | 2026-03-26 | `-MMD -MP` header dependency tracking; incremental builds work (`70d3813`) |
+| ZigBuild Phase Z.1 | 2026-03-26 | `build.zig` compiler bootstrap; `zig build` produces working `harbour`; cross-compilation to Windows verified |

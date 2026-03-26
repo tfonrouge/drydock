@@ -7,6 +7,8 @@ bin/*/
 lib/*/
 obj
 .hbmk/
+.zig-cache/
+zig-out/
 *.hbl
 *.hbd
 *.hbr

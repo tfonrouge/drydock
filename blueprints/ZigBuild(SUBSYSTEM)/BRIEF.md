@@ -271,25 +271,21 @@ if (target.result.os.tag == .windows) {
 
 ## 6. Phased Migration
 
-### Phase Z.0: Immediate Fix (1 day) — independent of zig migration
+### Phase Z.0: Immediate Fix (1 day) — DONE (2026-03-26, `70d3813`)
 
-Add `-MMD -MP` to `config/c.mk` and include generated `.d` files. Two lines.
-Fixes stale-object bugs in the current Make system immediately.
-
-```makefile
-CFLAGS += -MMD -MP
--include $(ALL_C_OBJS:.o=.d)
-```
-
-This ships regardless of whether the zig migration proceeds.
+Added `-MMD -MP` to `config/linux/gcc.mk` and `config/linux/clang.mk`,
+and `-include` for `.d` files in `config/c.mk` and `config/prg.mk`.
+1,367 dependency files generated. Incremental rebuild after touching
+`hbapi.h`: 0.5s. No-op core build: 0.28s. hbtest 4861/4861 passed.
 
 ### Phase Z.1: Compiler Bootstrap via Zig (1 week)
 
 Add `build.zig` that builds the `harbour` compiler binary. Phase 1 only
 (pure C, no .prg). Keep Make for everything else.
 
-**Verification**: `zig build` produces a working `harbour` binary that passes
-`hbtest`.
+**Verification**: `zig build` produces a working `harbour` binary.
+`harbour -n -w3 -es2 tests/hello.prg` compiles without error and produces
+`hello.c`. (Full `hbtest` requires the runtime, which is Phase Z.2+.)
 
 **Coexistence**: both `make` and `zig build` work. Developers choose.
 
@@ -428,7 +424,7 @@ incremental builds mean faster iteration on RefactorHvm, ScalarClasses, etc.
 
 | Phase | Effort | Can Ship Independently |
 |-------|--------|----------------------|
-| Z.0: Add `-MMD` to Make (immediate fix) | 1 day | Yes |
+| ~~Z.0: Add `-MMD` to Make~~ | ~~1 day~~ | **DONE** (2026-03-26) |
 | Z.1: Compiler bootstrap via zig | 1 week | Yes |
 | Z.2: Full C build | 1 week | Yes (after Z.1) |
 | Z.3: Two-phase bootstrap (.prg) | 1 week | Yes (after Z.2) |
