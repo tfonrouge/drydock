@@ -23,27 +23,35 @@
  */
 
 #include "hbcomp.h"
+#include "hbsetup.h"
 
 #define SYM_NOLINK    0             /* symbol does not have to be linked */
 #define SYM_FUNC      1             /* function defined in this module   */
 #define SYM_EXTERN    2             /* function defined in other module  */
 #define SYM_DEFERRED  3             /* lately bound function             */
 
+/* .hrb format version — v3 adds full 16-bit scope, pcode version,
+   and module name. See DESIGN.md in blueprints/HRBModern(FEATURE). */
+#define HRB_VER_V3    3
+
 static HB_SIZE hb_compHrbSize( HB_COMP_DECL, HB_ULONG * pulSymbols, HB_ULONG * pulFunctions )
 {
    PHB_HFUNC pFunc;
    PHB_HSYMBOL pSym;
    HB_SIZE nSize;
+   const char * szModuleName = HB_COMP_PARAM->szFile ? HB_COMP_PARAM->szFile : "";
 
    *pulSymbols = *pulFunctions = 0;
 
    /* count total size */
-   nSize = 10;  /* signature[4] + version[2] + symbols_number[4] */
+   /* v3 header: signature[4] + version[2] + pcode_version[2] + module_name[\0] */
+   nSize = 4 + 2 + 2 + strlen( szModuleName ) + 1;
+   nSize += 4;  /* symbols_number[4] */
    pSym = HB_COMP_PARAM->symbols.pFirst;
    while( pSym )
    {
       ( *pulSymbols )++;
-      nSize += strlen( pSym->szName ) + 3; /* \0 + symscope[1] + symtype[1] */
+      nSize += strlen( pSym->szName ) + 4; /* \0 + symscope[2] + symtype[1] */
       pSym = pSym->pNext;
    }
    nSize += 4; /* functions_number[4] */
@@ -69,6 +77,7 @@ void hb_compGenBufPortObj( HB_COMP_DECL, HB_BYTE ** pBufPtr, HB_SIZE * pnSize )
    HB_ULONG ulSymbols, ulFunctions;
    HB_SIZE nLen;
    HB_BYTE * ptr;
+   const char * szModuleName = HB_COMP_PARAM->szFile ? HB_COMP_PARAM->szFile : "";
 
    *pnSize = hb_compHrbSize( HB_COMP_PARAM, &ulSymbols, &ulFunctions );
    /* additional 0 byte is for passing buffer directly as string item */
@@ -79,8 +88,17 @@ void hb_compGenBufPortObj( HB_COMP_DECL, HB_BYTE ** pBufPtr, HB_SIZE * pnSize )
    *ptr++ = 'H';
    *ptr++ = 'R';
    *ptr++ = 'B';
-   HB_PUT_LE_UINT16( ptr, 2 );   /* version number */
+   HB_PUT_LE_UINT16( ptr, HRB_VER_V3 );   /* version number: v3 */
    ptr += 2;
+
+   /* v3: pcode version */
+   HB_PUT_LE_UINT16( ptr, HB_PCODE_VER );
+   ptr += 2;
+
+   /* v3: module name (source file path) */
+   nLen = strlen( szModuleName ) + 1;
+   memcpy( ptr, szModuleName, nLen );
+   ptr += nLen;
 
    HB_PUT_LE_UINT32( ptr, ulSymbols ); /* number of symbols */
    ptr += 4;
@@ -91,14 +109,12 @@ void hb_compGenBufPortObj( HB_COMP_DECL, HB_BYTE ** pBufPtr, HB_SIZE * pnSize )
       nLen = strlen( pSym->szName ) + 1;
       memcpy( ptr, pSym->szName, nLen );
       ptr += nLen;
-      /* FIXME: this conversion strips upper byte from symbol scope
-       *        Now we added workaround for it by using some strict
-       *        bit order and restoring some others at runtime when
-       *        .hrb file is loaded but we should create new format
-       *        for .hrb files in which this field will have at least
-       *        16-bit [druzus]
+      /* v3: full 16-bit scope — no truncation.
+       * Resolves the FIXME from [druzus] regarding lost upper-byte flags
+       * (HB_FS_PCODEFUNC, HB_FS_LOCAL, HB_FS_DEFERRED, etc.)
        */
-      *ptr++ = ( HB_BYTE ) pSym->cScope;
+      HB_PUT_LE_UINT16( ptr, pSym->cScope );
+      ptr += 2;
       /* symbol type */
       if( pSym->cScope & HB_FS_LOCAL )
          *ptr++ = SYM_FUNC;      /* function defined in this module */

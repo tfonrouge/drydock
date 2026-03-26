@@ -320,6 +320,8 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
       PHB_DYNS pDynSym;
 
       int iVersion = hb_hrbReadHead( szHrbBody, nBodySize, &nBodyOffset );
+      /* v3: per-symbol overhead is 3 (scope[2] + type[1]); v2: 2 (scope[1] + type[1]) */
+      int iSymExtraBytes = ( iVersion >= 3 ) ? 3 : 2;
 
       if( iVersion == 0 )
       {
@@ -336,6 +338,18 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
       pHrbBody->pSymRead = NULL;
       pHrbBody->pDynFunc = NULL;
       pHrbBody->pModuleSymbols = NULL;
+
+      /* v3: skip pcode version (2 bytes) + module name (null-terminated) */
+      if( iVersion >= 3 )
+      {
+         nBodyOffset += 2;  /* pcode version */
+         /* skip module name */
+         while( nBodyOffset < nBodySize && szHrbBody[ nBodyOffset ] != 0 )
+            nBodyOffset++;
+         if( nBodyOffset < nBodySize )
+            nBodyOffset++;  /* skip null terminator */
+      }
+
       if( ! hb_hrbReadValue( szHrbBody, nBodySize, &nBodyOffset, &pHrbBody->ulSymbols ) ||
             pHrbBody->ulSymbols == 0 )
       {
@@ -356,7 +370,7 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
             if( szHrbBody[ nBodyOffset++ ] == 0 )
                break;
          }
-         nBodyOffset += 2;
+         nBodyOffset += iSymExtraBytes;
          if( nBodyOffset >= nBodySize )
          {
             hb_hrbUnLoad( pHrbBody );
@@ -378,7 +392,17 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
             ch = *buffer++ = szHrbBody[ nBodyOffset++ ];
          }
          while( ch );
-         pSymRead[ ul ].scope.value = ( HB_BYTE ) szHrbBody[ nBodyOffset++ ];
+         if( iVersion >= 3 )
+         {
+            /* v3: full 16-bit scope — no truncation */
+            pSymRead[ ul ].scope.value = HB_PCODE_MKUSHORT( ( const HB_BYTE * ) &szHrbBody[ nBodyOffset ] );
+            nBodyOffset += 2;
+         }
+         else
+         {
+            /* v2: truncated 8-bit scope (legacy) */
+            pSymRead[ ul ].scope.value = ( HB_BYTE ) szHrbBody[ nBodyOffset++ ];
+         }
          pSymRead[ ul ].value.pCodeFunc = ( PHB_PCODEFUNC ) ( HB_PTRUINT ) szHrbBody[ nBodyOffset++ ];
          pSymRead[ ul ].pDynSym = NULL;
 

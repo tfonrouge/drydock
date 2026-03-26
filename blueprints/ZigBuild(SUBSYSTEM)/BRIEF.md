@@ -99,44 +99,85 @@ The Zig build system is a real programming language, not a macro system:
 
 ## 3. Build Graph
 
-### Phase 1: Bootstrap (pure C — no .prg needed)
+### Key Insight: `.prg → .c` Is Not Required
 
-```
-hbcommon.a ← src/common/*.c (23 files)
-hbnortl.a  ← src/nortl/nortl.c
-hbpp.a     ← src/pp/*.c (4 files) → links hbcommon, hbnortl
-hbcplr.a   ← src/compiler/*.c (39 files) + harbour.y → links hbpp, hbcommon
-harbour    ← src/main/harbour.c → links hbcplr, hbpp, hbnortl, hbcommon
-```
+The Harbour compiler has a `.hrb` backend (`harbour -gh`) that produces
+**identical pcode bytecode** without generating C code. The VM executes the
+same bytes regardless of source. The generated C is pure ceremony:
 
-### Phase 2: Runtime (uses harbour to compile .prg → .c)
-
-```
-hbvm.a     ← src/vm/*.c (50 files) + harbinit.prg → links hbcommon
-hbrtl.a    ← src/rtl/*.c (217 files) + *.prg (76 files) → links hbvm, hbcommon
-hbmacro.a  ← src/macro/*.c (4 files) + macro.y
-hbrdd.a    ← src/rdd/*.c (19 files) + *.prg (12 files)
-hbcpage.a  ← src/codepage/*.c (170+ files)
-hblang.a   ← src/lang/*.c (42 files)
-hbdebug.a  ← src/debug/*.c (1 file) + *.prg (13 files)
-hbextern.a ← src/hbextern/hbextern.prg
-GT drivers ← src/rtl/gt*/ (conditional per platform)
-RDD drivers← src/rdd/*/ (rddntx, rddcdx, rddfpt, etc.)
+```c
+HB_FUNC( MAIN ) {
+    static const HB_BYTE pcode[] = { 13,4,0,36,4,0,... };
+    hb_vmExecute( pcode, symbols );  /* same call as .hrb loader */
+}
 ```
 
-### Phase 3: Utilities
+The C compiler does zero optimization of Harbour logic — it just packages
+bytes into a native function wrapper. All symbol resolution happens at VM
+runtime via `hb_dynsymFind()`, not at C link time.
+
+**Consequence**: the build has two modes.
+
+### Development Mode (default): `.prg → .hrb`
 
 ```
-hbmk2   ← utils/hbmk2/hbmk2.prg → links all runtime libs
-hbtest  ← utils/hbtest/*.prg → links all runtime libs
-hbi18n  ← utils/hbi18n/hbi18n.prg → links runtime (no RDD)
+Phase 1: Build harbour compiler + VM + RTL (pure C — zig cc)
+  hbcommon.a ← src/common/*.c (23 files)
+  hbnortl.a  ← src/nortl/nortl.c
+  hbpp.a     ← src/pp/*.c (4 files) → links hbcommon, hbnortl
+  hbcplr.a   ← src/compiler/*.c (39 files) + harbour.y → links hbpp, hbcommon
+  harbour    ← src/main/harbour.c → links hbcplr, hbpp, hbnortl, hbcommon
+  hbvm.a     ← src/vm/*.c (50 files) → links hbcommon
+  hbrtl.a    ← src/rtl/*.c (217 files) → links hbvm, hbcommon
+  hbmacro.a  ← src/macro/*.c (4 files) + macro.y
+  hbrdd.a    ← src/rdd/*.c (19 files)
+  hbcpage.a  ← src/codepage/*.c (170+ files)
+  hblang.a   ← src/lang/*.c (42 files)
+  hbdebug.a  ← src/debug/*.c (1 file)
+  GT drivers ← src/rtl/gt*/ (conditional per platform)
+  RDD drivers← src/rdd/*/ (rddntx, rddcdx, rddfpt, etc.)
+
+Phase 2: Compile .prg → .hrb (harbour -gh, NO C compiler needed)
+  src/rtl/*.prg (76 files)     → obj/hrb/*.hrb
+  src/vm/harbinit.prg          → obj/hrb/harbinit.hrb
+  src/rdd/*.prg (12 files)     → obj/hrb/*.hrb
+  src/debug/*.prg (13 files)   → obj/hrb/*.hrb
+  src/hbextern/hbextern.prg    → obj/hrb/hbextern.hrb
+
+Phase 3: Build shared library + embed .hrb files
+  libharbour.so ← all C static libs merged + .hrb files as embedded resources
+  (VM loads embedded .hrb at startup via hb_hrbLoad())
+
+Phase 4: Utilities (compile .prg → .hrb, link with VM)
+  hbmk2   ← utils/hbmk2/hbmk2.prg → .hrb, loaded by launcher
+  hbtest  ← utils/hbtest/*.prg → .hrb, loaded by launcher
+  hbi18n  ← utils/hbi18n/hbi18n.prg → .hrb, loaded by launcher
 ```
 
-### Phase 4: Shared library
+**Build speed**: Phase 1 (C compilation) is the slow part. Phase 2 is
+milliseconds — `harbour -gh` just emits pcode, no C compiler involved.
+Changing a `.prg` file only re-runs Phase 2 (instant) instead of
+`.prg → .c → zig cc → .o → link` (seconds).
+
+### Release Mode (`-Drelease`): `.prg → .c → .o`
 
 ```
-libharbour.so ← all 50+ static libs merged, filtered by harbour.def exports
+Same as Development Phase 1, PLUS:
+
+Phase 2: Compile .prg → .c → .o (harbour -gc0, then zig cc)
+  src/rtl/*.prg (76 files)     → .c → .o (statically linked)
+  src/vm/harbinit.prg          → .c → .o
+  src/rdd/*.prg (12 files)     → .c → .o
+  src/debug/*.prg (13 files)   → .c → .o
+  src/hbextern/hbextern.prg    → .c → .o
+
+Phase 3: Link standalone binaries
+  harbour, hbmk2, hbtest, hbi18n ← all .o files + all .a libraries
+  libharbour.so ← all static libs merged
 ```
+
+This is the current behavior — standalone executables without runtime
+dependency. Used for release builds and distribution only.
 
 ### Phase 5: Contribs
 
@@ -161,12 +202,24 @@ pub fn build(b: *std.Build) void {
     const hbcplr  = addLib(b, "hbcplr", "src/compiler", &COMPILER_SRCS, ...);
     const harbour = addCompilerExe(b, hbcplr, hbpp, hbcommon, ...);
 
-    // Phase 2: Runtime (uses harbour for .prg)
-    const hbvm  = addLibWithPrg(b, harbour, "hbvm", "src/vm", ...);
-    const hbrtl = addLibWithPrg(b, harbour, "hbrtl", "src/rtl", ...);
-    // ... each library is 3-5 lines
+    // Phase 2: Runtime C libraries (no .prg compilation needed)
+    const hbvm  = addLib(b, "hbvm", "src/vm", &VM_C_SRCS, ...);
+    const hbrtl = addLib(b, "hbrtl", "src/rtl", &RTL_C_SRCS, ...);
+    // ... each C library is 3-5 lines
 
-    // Phase 3: Binaries
+    // Phase 3: Compile .prg → .hrb (development) or .prg → .c → .o (release)
+    const release = b.option(bool, "release-prg", "Use C path for .prg") orelse false;
+    if (release) {
+        // .prg → .c → .o (standalone executables)
+        const prg_objs = addPrgToCObjects(b, harbour, &ALL_PRG_SOURCES);
+        hbrtl.addObjectFiles(prg_objs);
+    } else {
+        // .prg → .hrb (fast dev builds, loaded by VM at startup)
+        const hrb_step = addPrgToHrb(b, harbour, &ALL_PRG_SOURCES);
+        // .hrb files embedded as resources or installed alongside binary
+    }
+
+    // Phase 4: Binaries
     const hbmk2  = addHarbourExe(b, harbour, "hbmk2", ...);
     const hbtest = addHarbourExe(b, harbour, "hbtest", ...);
 
@@ -297,13 +350,21 @@ third-party libs.
 
 **Still missing**: `.prg` compilation — those libraries are incomplete.
 
-### Phase Z.3: Two-Phase Bootstrap (1 week)
+### Phase Z.3: .prg Compilation — Two Modes (1 week)
 
-Add `.prg → .c` compilation step. `build.zig` builds `harbour`, then uses
-it to compile all `.prg` files. Full build works end-to-end.
+Add `.prg` compilation step with two modes:
 
-**Verification**: `zig build && zig build test` produces identical output to
-`make && make test`.
+**Development mode (default)**: `harbour -gh` compiles `.prg → .hrb`.
+No C compiler involved for `.prg` files. The `.hrb` files are loaded by
+the VM at startup via `hb_hrbLoad()`. Changing a `.prg` file only re-runs
+`harbour -gh` (milliseconds), not the full C pipeline.
+
+**Release mode** (`-Drelease-prg`): `harbour -gc0` compiles `.prg → .c`,
+then `zig cc` compiles to `.o`, linked into standalone binaries. This is
+the traditional pipeline, used for distribution.
+
+**Verification**: `zig build && zig build test` passes hbtest 4861/4861.
+`zig build -Drelease-prg && zig build test` produces identical results.
 
 **Key milestone**: Make is now optional for the core build.
 

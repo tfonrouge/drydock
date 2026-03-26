@@ -11,8 +11,9 @@
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
 | Z | [ZigBuild](ZigBuild(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
+| H | [HRBModern](HRBModern(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
 
-**Deliverable**: Replace 26,793 lines of GNU Make + hbmk2 with ~500-line `build.zig`. Correct incremental builds. One-command cross-compilation. 2-5x faster builds.
+**Deliverable**: Replace 26,793 lines of GNU Make + hbmk2 with ~500-line `build.zig`. Fix `.hrb` bytecode format and make it the default for dev builds — `.prg → .hrb` (milliseconds) instead of `.prg → .c → gcc → .o` (seconds). Correct incremental builds. One-command cross-compilation.
 
 ## Tier 1 — Fix the Foundation (months 1-6)
 

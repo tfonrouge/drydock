@@ -7,7 +7,8 @@
 ```mermaid
 graph LR
   subgraph Tier 0 — Build
-    Z[ZigBuild]
+    Z[ZigBuild] -.-> HM[HRBModern]
+    HM -.-> Z
   end
 
   subgraph Tier 1 — Foundation
@@ -45,7 +46,8 @@ Tier 0 (ZigBuild) is independent — runs in parallel with everything.
 
 | Blueprint | Status | Goal This Sprint |
 |-----------|--------|-----------------|
-| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0-Z.2 done (2026-03-26).~~ Next: Phase Z.3: two-phase bootstrap with .prg compilation. |
+| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0-Z.2 done (2026-03-26).~~ Next: Phase Z.3 — `.hrb`-first dev builds + C release path. |
+| HRBModern(FEATURE) | :blue_circle: PLANNING | Phase H.1: fix `.hrb` v3 format (scope truncation, INIT/EXIT, metadata). Phase H.4: add `-dp` pcode disassembler. |
 | RefactorHvm(SUBSYSTEM) | :blue_circle: PLANNING | Begin Phase 0 (dead code removal — 680 lines, zero callers) |
 | ScalarClasses(SUBSYSTEM) | :blue_circle: PLANNING | BRIEF + DESIGN complete; begin Phase 1 once RefactorHvm Phase 0 lands |
 | ComputedGoto(SUBSYSTEM) | :blue_circle: PLANNING | BRIEF complete; implementation can proceed independently |
@@ -57,13 +59,19 @@ Two independent tracks can proceed simultaneously:
 
 **Track A — Build Infrastructure (Tier 0)**
 ```
-Z.0 (add -MMD, 1 day)
-  → Z.1 (zig compiler bootstrap, 1 week)
-  → Z.2 (full C build, 1 week)
-  → Z.3 (two-phase .prg bootstrap, 1 week)
+Z.0 (add -MMD) ✓
+  → Z.1 (zig compiler bootstrap) ✓
+  → Z.2 (full C build) ✓
+  → Z.3 (.hrb-first dev builds + C release path, 1 week)
   → Z.4 (contrib migration, 2 weeks)
   → Z.5 (Make removal, 1 week)
   → Z.6 (hbmk2 simplification, 2-3 weeks)
+
+H.1 (fix .hrb v3 format, 3 days) — independent, can start now
+  → H.2 (.hrb bundling, 3 days)
+  → H.3 (.hrb embedding, 3 days)
+H.4 (CLI: -dp, -gejson, 2 days) — independent
+H.5 (auto INIT/EXIT in .hrb, 1 day) — after H.1
 ```
 
 **Track B — Runtime Modernization (Tiers 1-3)**
