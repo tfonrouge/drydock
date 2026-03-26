@@ -18,6 +18,11 @@ endif
 
 ALL_C_OBJS := $(YACC_OBJ) $(C_OBJS) $(C_MAIN_OBJ) $(S_OBJS)
 
+# Include compiler-generated header dependency files (.d) if they exist.
+# These are produced by -MMD -MP flags (GCC/Clang). The leading dash
+# suppresses errors on clean builds when no .d files exist yet.
+-include $(ALL_C_OBJS:$(OBJ_EXT)=.d)
+
 $(YACC_OBJ) : $(YACC_C)
 
 ifeq ($(HB_REBUILD_PARSER),yes)

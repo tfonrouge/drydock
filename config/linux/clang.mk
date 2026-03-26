@@ -39,6 +39,11 @@ ifneq ($(HB_BUILD_OPTIM),no)
    CFLAGS += -O3
 endif
 
+# Generate header dependency files alongside object files.
+# -MMD writes .d files for user headers (not system), -MP adds
+# phony targets for each header to avoid errors on header deletion.
+CFLAGS += -MMD -MP
+
 ifeq ($(HB_BUILD_DEBUG),yes)
    CFLAGS += -g
 endif

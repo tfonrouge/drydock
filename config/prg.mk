@@ -6,6 +6,9 @@ PRG_MAIN_OBJ := $(PRG_MAIN:.prg=$(OBJ_EXT))
 
 ALL_PRG_OBJS := $(PRG_OBJS) $(PRG_MAIN_OBJ)
 
+# Include header dependency files for PRG-compiled objects too.
+-include $(ALL_PRG_OBJS:$(OBJ_EXT)=.d)
+
 $(PRG_OBJS) : %$(OBJ_EXT) : %.c
 
 $(PRG_C_SOURCES) : %.c : $(GRANDP)%.prg
