@@ -1,17 +1,19 @@
 #!/bin/sh
-# Create legacy compatibility symlinks after a Make build.
-# Make produces the old Harbour names (harbour, hbmk2, etc.).
-# This script renames them to Drydock names and creates legacy symlinks.
+# Create Drydock-named aliases for Make-built Harbour binaries.
+#
+# Some tools (hbmk2, hbrun) check argv[0] to determine their operating mode,
+# so they cannot be renamed. For those we create wrapper scripts that exec
+# the original binary. For tools that don't check argv[0] (harbour, hbtest,
+# hbpp, hbi18n, hbformat) we can use simple symlinks.
 #
 # After running:
-#   drydock   (real binary, renamed from harbour)
-#   harbour   (legacy symlink → drydock)
-#   ddmake    (real binary, renamed from hbmk2)
-#   hbmk2     (legacy symlink → ddmake)
-#   ...
-#
-# The zig build already produces Drydock names directly.
-# This script is only needed for the legacy Make build.
+#   drydock   (symlink → harbour)         — compiler doesn't check argv[0]
+#   ddmake    (wrapper → hbmk2)           — hbmk2 checks argv[0]
+#   ddtest    (symlink → hbtest)          — doesn't check argv[0]
+#   ddrun     (wrapper → hbrun)           — hbrun checks argv[0]
+#   ddpp      (symlink → hbpp)            — doesn't check argv[0]
+#   ddi18n    (symlink → hbi18n)          — doesn't check argv[0]
+#   ddformat  (symlink → hbformat)        — doesn't check argv[0]
 #
 # Usage: bin/create-symlinks.sh [bin_dir]
 
@@ -22,23 +24,33 @@ if [ ! -d "$BIN_DIR" ]; then
     exit 1
 fi
 
-# Rename real binary to new name, create legacy symlink with old name
-rename_binary() {
+# Create a symlink (for tools that don't check argv[0])
+create_symlink() {
     local old="$1" new="$2"
-    if [ -f "$BIN_DIR/$old" ] && [ ! -L "$BIN_DIR/$old" ]; then
-        mv "$BIN_DIR/$old" "$BIN_DIR/$new"
-        ln -sf "$new" "$BIN_DIR/$old"
-        echo "  $old -> $new (renamed + legacy symlink)"
-    elif [ -L "$BIN_DIR/$old" ] && [ -f "$BIN_DIR/$new" ]; then
-        echo "  $new (already renamed)"
+    if [ -f "$BIN_DIR/$old" ] || [ -L "$BIN_DIR/$old" ]; then
+        ln -sf "$old" "$BIN_DIR/$new"
+        echo "  $new -> $old (symlink)"
     fi
 }
 
-echo "Renaming Make binaries to Drydock names in $BIN_DIR:"
-rename_binary harbour    drydock
-rename_binary hbmk2      ddmake
-rename_binary hbtest     ddtest
-rename_binary hbrun      ddrun
-rename_binary hbpp       ddpp
-rename_binary hbi18n     ddi18n
-rename_binary hbformat   ddformat
+# Create a wrapper script (for tools that check argv[0])
+create_wrapper() {
+    local old="$1" new="$2"
+    if [ -f "$BIN_DIR/$old" ] || [ -L "$BIN_DIR/$old" ]; then
+        cat > "$BIN_DIR/$new" << WRAPPER
+#!/bin/sh
+exec "\$(dirname "\$0")/$old" "\$@"
+WRAPPER
+        chmod +x "$BIN_DIR/$new"
+        echo "  $new -> $old (wrapper)"
+    fi
+}
+
+echo "Creating Drydock aliases in $BIN_DIR:"
+create_symlink harbour    drydock
+create_wrapper hbmk2      ddmake
+create_symlink hbtest     ddtest
+create_wrapper hbrun      ddrun
+create_symlink hbpp       ddpp
+create_symlink hbi18n     ddi18n
+create_symlink hbformat   ddformat
