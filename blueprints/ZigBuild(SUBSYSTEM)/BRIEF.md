@@ -101,7 +101,7 @@ The Zig build system is a real programming language, not a macro system:
 
 ### Key Insight: `.prg → .c` Is Not Required
 
-The Harbour compiler has a `.hrb` backend (`harbour -gh`) that produces
+The Harbour compiler has a `.hrb` backend (`drydock -gh`) that produces
 **identical pcode bytecode** without generating C code. The VM executes the
 same bytes regardless of source. The generated C is pure ceremony:
 
@@ -137,7 +137,7 @@ Phase 1: Build harbour compiler + VM + RTL (pure C — zig cc)
   GT drivers ← src/rtl/gt*/ (conditional per platform)
   RDD drivers← src/rdd/*/ (rddntx, rddcdx, rddfpt, etc.)
 
-Phase 2: Compile .prg → .hrb (harbour -gh, NO C compiler needed)
+Phase 2: Compile .prg → .hrb (drydock -gh, NO C compiler needed)
   src/rtl/*.prg (76 files)     → obj/hrb/*.hrb
   src/vm/harbinit.prg          → obj/hrb/harbinit.hrb
   src/rdd/*.prg (12 files)     → obj/hrb/*.hrb
@@ -155,7 +155,7 @@ Phase 4: Utilities (compile .prg → .hrb, link with VM)
 ```
 
 **Build speed**: Phase 1 (C compilation) is the slow part. Phase 2 is
-milliseconds — `harbour -gh` just emits pcode, no C compiler involved.
+milliseconds — `drydock -gh` just emits pcode, no C compiler involved.
 Changing a `.prg` file only re-runs Phase 2 (instant) instead of
 `.prg → .c → zig cc → .o → link` (seconds).
 
@@ -164,7 +164,7 @@ Changing a `.prg` file only re-runs Phase 2 (instant) instead of
 ```
 Same as Development Phase 1, PLUS:
 
-Phase 2: Compile .prg → .c → .o (harbour -gc0, then zig cc)
+Phase 2: Compile .prg → .c → .o (drydock -gc0, then zig cc)
   src/rtl/*.prg (76 files)     → .c → .o (statically linked)
   src/vm/harbinit.prg          → .c → .o
   src/rdd/*.prg (12 files)     → .c → .o
@@ -172,7 +172,7 @@ Phase 2: Compile .prg → .c → .o (harbour -gc0, then zig cc)
   src/hbextern/hbextern.prg    → .c → .o
 
 Phase 3: Link standalone binaries
-  harbour, hbmk2, hbtest, hbi18n ← all .o files + all .a libraries
+  drydock, ddmake, ddtest, ddi18n ← all .o files + all .a libraries
   libharbour.so ← all static libs merged
 ```
 
@@ -220,8 +220,8 @@ pub fn build(b: *std.Build) void {
     }
 
     // Phase 4: Binaries
-    const hbmk2  = addHarbourExe(b, harbour, "hbmk2", ...);
-    const hbtest = addHarbourExe(b, harbour, "hbtest", ...);
+    const ddmake = addHarbourExe(b, harbour, "ddmake", ...);
+    const ddtest = addHarbourExe(b, harbour, "ddtest", ...);
 
     // Phase 4: Shared library
     const dynlib = addDynLib(b, ALL_LIBS, ...);
@@ -333,7 +333,7 @@ and `-include` for `.d` files in `config/c.mk` and `config/prg.mk`.
 
 ### Phase Z.1: Compiler Bootstrap via Zig (1 week)
 
-Add `build.zig` that builds the `harbour` compiler binary. Phase 1 only
+Add `build.zig` that builds the `drydock` compiler binary. Phase 1 only
 (pure C, no .prg). Keep Make for everything else.
 
 **Verification**: `zig build` produces a working `drydock` binary.
@@ -354,12 +354,12 @@ third-party libs.
 
 Add `.prg` compilation step with two modes:
 
-**Development mode (default)**: `harbour -gh` compiles `.prg → .hrb`.
+**Development mode (default)**: `drydock -gh` compiles `.prg → .hrb`.
 No C compiler involved for `.prg` files. The `.hrb` files are loaded by
 the VM at startup via `hb_hrbLoad()`. Changing a `.prg` file only re-runs
-`harbour -gh` (milliseconds), not the full C pipeline.
+`drydock -gh` (milliseconds), not the full C pipeline.
 
-**Release mode** (`-Drelease-prg`): `harbour -gc0` compiles `.prg → .c`,
+**Release mode** (`-Drelease-prg`): `drydock -gc0` compiles `.prg → .c`,
 then `zig cc` compiles to `.o`, linked into standalone binaries. This is
 the traditional pipeline, used for distribution.
 

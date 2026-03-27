@@ -1,6 +1,6 @@
 # Audit -- ZigBuild (SUBSYSTEM)
-**Last Audit**: 2026-03-26
-**Overall**: :white_check_mark: Aligned
+**Last Audit**: 2026-03-27
+**Overall**: :white_check_mark: Aligned (post binary rename sweep)
 
 ## Drift Log
 
@@ -9,6 +9,8 @@
 | BRIEF.md | Phase Z.0 (original) | "Add `-MMD -MP` to `config/c.mk` and include generated `.d` files. Two lines." | Flags added to `config/linux/gcc.mk` and `config/linux/clang.mk` (not `c.mk`). Includes added to both `config/c.mk` AND `config/prg.mk`. 4 files, 18 lines — not 2. | Medium | **Fixed** — BRIEF.md Z.0 section updated to reflect actual implementation on 2026-03-26 |
 | BRIEF.md | Phase Z.1 verification | "produces a working `harbour` binary that passes `hbtest`" | `hbtest` requires the full runtime (hbvm, hbrtl, etc.), not just the compiler. Z.1 only builds the compiler. Verification criterion is wrong. | Medium | Update Z.1 verification to: `harbour` compiles `tests/hello.prg` to C output |
 | BRIEF.md | Scope table | Shows Z.0 effort as "1 day" | Actual: ~2 hours including research, implementation, testing | Low | Cosmetic — no action needed |
+| ALL artifacts | Binary name | ~100 references to `harbour` as binary name | Binary renamed to `drydock` (commit `ea1d273`) | High | **Fixed** — bulk replacement in BRIEF, DESIGN, PLAN, TEST_PLAN (2026-03-27) |
+| src/main/harbour.c, src/vm/runner.c | File existence | Should exist on disk | Accidentally deleted during Z.3 stash cleanup | Critical | **Fixed** — `git restore` on 2026-03-27 |
 
 ## Process Gaps
 
@@ -26,6 +28,8 @@
 - [x] DESIGN.md exists before Z.1 starts (created 2026-03-26)
 - [x] TEST_PLAN.md covers Z.0 retroactively and Z.1 proactively (created 2026-03-26)
 - [x] IMPLEMENTATION_PLAN.md exists before Z.1 starts (created 2026-03-26)
+- [x] All artifacts updated after binary rename harbour→drydock (2026-03-27)
+- [x] Deleted source files restored: src/main/harbour.c, src/vm/runner.c (2026-03-27)
 
 ## Notes
 

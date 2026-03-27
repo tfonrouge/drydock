@@ -6,8 +6,8 @@
 
 The Harbour build is a two-phase bootstrap:
 
-1. **Phase 1 (C only)**: Build the `harbour` compiler from pure C sources
-2. **Phase 2 (C + PRG)**: Use `harbour` to compile `.prg` sources, then compile
+1. **Phase 1 (C only)**: Build the `drydock` compiler from pure C sources
+2. **Phase 2 (C + PRG)**: Use `drydock` to compile `.prg` sources, then compile
    the generated C, then link everything into libraries and binaries
 
 ```
@@ -15,9 +15,9 @@ hbcommon.a  ← src/common/*.c (20 files)
 hbnortl.a   ← src/nortl/nortl.c (1 file)
 hbpp.a      ← src/pp/*.c (4 files)
 hbcplr.a    ← src/compiler/*.c (23 files) + harbour.y → harboury.c
-harbour     ← src/main/harbour.c + hbcplr + hbpp + hbnortl + hbcommon
+drydock     ← src/main/harbour.c + hbcplr + hbpp + hbnortl + hbcommon
                │
-               ▼ harbour compiler is now available
+               ▼ drydock compiler is now available
 hbvm.a      ← src/vm/*.c (45 files) + harbinit.prg
 hbrtl.a     ← src/rtl/*.c (207 files) + *.prg (74 files)
 hbmacro.a   ← src/macro/*.c (3 files) + macro.y
@@ -83,7 +83,7 @@ Third-party library flags:
 ### Harbour Compiler Flags (for .prg files)
 
 ```
-harbour -n1 -q0 -w3 -es2 -kmo -i- -i<root>/include <file.prg>
+drydock -n1 -q0 -w3 -es2 -kmo -i- -i<root>/include <file.prg>
 ```
 
 This produces a `.c` file that is then compiled with the C compiler.
@@ -131,7 +131,7 @@ pub fn build(b: *std.Build) void {
     const hbpp     = addCLib(b, "hbpp", "src/pp", &PP_SRCS, target, optimize);
     const hbcplr   = addCLib(b, "hbcplr", "src/compiler", &COMPILER_SRCS, target, optimize);
     // harbour.y: use pre-generated harboury.c (copy from .yyc)
-    const harbour  = addExe(b, "harbour", "src/main/harbour.c",
+    const harbour  = addExe(b, "drydock", "src/main/harbour.c",
                             &.{hbcplr, hbpp, hbnortl, hbcommon}, target, optimize);
 
     // Phase 2: Runtime (needs harbour for .prg → .c)
@@ -140,7 +140,7 @@ pub fn build(b: *std.Build) void {
     // ... each library
 
     // Phase 3: Binaries
-    const hbtest = addHarbourExe(b, harbour, "hbtest", ...);
+    const ddtest = addHarbourExe(b, harbour, "ddtest", ...);
 
     // Test step
     const test_step = b.step("test", "Run hbtest");

@@ -67,27 +67,27 @@
 
 ## Phase Z.1: Compiler Bootstrap via Zig
 
-### TEST-Z1-001: Zig Build Produces harbour Binary
+### TEST-Z1-001: Zig Build Produces drydock Binary
 - **Type**: New
 - **Covers**: Phase Z.1 — `build.zig` compiles all bootstrap C sources
 - **Setup**: Zig 0.13.0 installed
 - **Action**: `zig build`
-- **Expected**: Produces `zig-out/bin/harbour` executable
+- **Expected**: Produces `zig-out/bin/drydock` executable
 - **Result**: PASS (2026-03-26) — ELF 64-bit x86-64 binary produced
 
-### TEST-Z1-002: Zig-Built harbour Compiles PRG to C
+### TEST-Z1-002: Zig-Built drydock Compiles PRG to C
 - **Type**: New
 - **Covers**: Phase Z.1 — produced binary is functional
 - **Setup**: `zig build` completed
-- **Action**: `zig-out/bin/harbour -n1 -w3 -es2 tests/hello.prg`
+- **Action**: `zig-out/bin/drydock -n1 -w3 -es2 tests/hello.prg`
 - **Expected**: Produces C output without errors
 - **Result**: PASS (2026-03-26) — compiled hello.prg, generated C source
 
-### TEST-Z1-003: Zig-Built harbour Output Matches Make-Built
+### TEST-Z1-003: Zig-Built drydock Output Matches Make-Built
 - **Type**: Regression
 - **Covers**: Phase Z.1 — zig and make produce equivalent compiler
 - **Setup**: Both `make` and `zig build` completed
-- **Action**: `diff` output of both `harbour` binaries compiling same `.prg`
+- **Action**: `diff` output of both `drydock` binaries compiling same `.prg`
 - **Expected**: Semantically equivalent (compiler ID string may differ)
 - **Result**: PASS (2026-03-26) — only diffs: compiler ID (GCC vs Clang), output filename in symbols
 
@@ -104,7 +104,7 @@
 - **Covers**: Phase Z.1 — zig cross-compilation from Linux to Windows
 - **Setup**: Zig installed on Linux
 - **Action**: `zig build -Dtarget=x86_64-windows-gnu`
-- **Expected**: Produces `zig-out/bin/harbour.exe` (Windows PE binary)
+- **Expected**: Produces `zig-out/bin/drydock.exe` (Windows PE binary)
 - **Result**: PASS (2026-03-26) — PE32+ executable (console) x86-64
 
 ---
@@ -117,7 +117,7 @@
 - **Setup**: Zig 0.13.0 installed
 - **Action**: `zig build`
 - **Expected**: All core C libraries produced
-- **Result**: PASS (2026-03-26) — 26 libraries + harbour binary in 5.5s.
+- **Result**: PASS (2026-03-26) — 26 libraries + drydock binary in 5.5s.
   Missing only hbextern (needs .prg) and gtxwc (needs X11 linkage).
 
 ### TEST-Z2-002: Library Completeness vs Make Build
@@ -135,7 +135,7 @@
 
 ### TEST-Z3-001: PRG Compilation Works
 - **Type**: New
-- **Covers**: Phase Z.3 — `build.zig` uses harbour to compile `.prg` files
+- **Covers**: Phase Z.3 — `build.zig` uses drydock to compile `.prg` files
 - **Setup**: Zig installed
 - **Action**: `zig build`
 - **Expected**: Full build succeeds including all `.prg` → `.c` → `.o` compilation

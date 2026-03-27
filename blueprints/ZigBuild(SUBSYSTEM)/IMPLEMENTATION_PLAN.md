@@ -11,7 +11,7 @@
 
 ## Phase Z.1: Compiler Bootstrap via Zig
 
-- **Milestone**: `zig build` produces a working `harbour` compiler binary from
+- **Milestone**: `zig build` produces a working `drydock` compiler binary from
   pure C sources. The binary compiles `tests/hello.prg` to C output.
 - **Depends on**: Zig toolchain installed (0.13+ recommended)
 - **Estimated effort**: 1 week
@@ -29,16 +29,16 @@
   `harbour.yyh` → `harboury.h` via build system command steps.
 - [x] **Z.1.6** Add `hbcplr` library — 23 C files from `src/compiler/` plus
   `harboury.c`. Added `src/compiler` as include path for `harboury.h`.
-- [x] **Z.1.7** Add `harbour` executable — `src/main/harbour.c` linked against
+- [x] **Z.1.7** Add `drydock` executable — `src/main/harbour.c` linked against
   hbcplr, hbpp, hbnortl, hbcommon, plus system libs (`-lm` on POSIX,
   `kernel32/user32/ws2_32/winmm` on Windows).
-- [x] **Z.1.8** Verify: `zig-out/bin/harbour -n1 -w3 -es2 tests/hello.prg`
+- [x] **Z.1.8** Verify: `zig-out/bin/drydock -n1 -w3 -es2 tests/hello.prg`
   produces C output without errors.
-- [x] **Z.1.9** Verify: output of zig-built harbour matches make-built harbour.
+- [x] **Z.1.9** Verify: output of zig-built drydock matches make-built harbour.
   Only differences: compiler ID string (GCC vs Clang) and output filename in
   symbol names. Semantically identical.
 - [x] **Z.1.10** Verify: `zig build -Dtarget=x86_64-windows-gnu` produces
-  `harbour.exe` (PE32+ executable).
+  `drydock.exe` (PE32+ executable).
 - [x] **Z.1.11** Update blueprint artifacts: TEST_PLAN results, AUDIT.
 
 ### Files created
@@ -50,9 +50,9 @@
 ### Build verification
 
 ```bash
-zig build && zig-out/bin/harbour -n1 -w3 -es2 tests/hello.prg
-diff <(bin/linux/gcc/harbour -n1 -w3 -es2 -o/tmp/make_hello tests/hello.prg && cat /tmp/make_hello.c) \
-     <(zig-out/bin/harbour -n1 -w3 -es2 -o/tmp/zig_hello tests/hello.prg && cat /tmp/zig_hello.c)
+zig build && zig-out/bin/drydock -n1 -w3 -es2 tests/hello.prg
+diff <(bin/linux/gcc/drydock -n1 -w3 -es2 -o/tmp/make_hello tests/hello.prg && cat /tmp/make_hello.c) \
+     <(zig-out/bin/drydock -n1 -w3 -es2 -o/tmp/zig_hello tests/hello.prg && cat /tmp/zig_hello.c)
 ```
 
 ### Rollback
@@ -65,7 +65,7 @@ Delete `build.zig`. No other files are modified. `make` continues to work.
 |------|------------|
 | Zig build API changes between versions | Pin zig version in README. Use stable API surface only. |
 | YACC copy step doesn't work cross-platform | Use zig's `std.fs.copyFile` instead of shell `cp` |
-| harbour binary needs runtime paths | Set `-I` include path via build.zig `addArg` |
+| drydock binary needs runtime paths | Set `-I` include path via build.zig `addArg` |
 
 ---
 
@@ -95,7 +95,7 @@ Delete `build.zig`. No other files are modified. `make` continues to work.
   hbzlib (15 files, HAVE_UNISTD_H on non-Windows).
 - [x] **Z.2.9** Add GT drivers — gtstd, gtcgi, gtpca (always), gttrm (Linux/BSD),
   gtwin + gtwvt + gtgui (Windows). Platform-conditional with install.
-- [x] **Z.2.10** Verify: `zig build` compiles 26 libraries + harbour binary
+- [x] **Z.2.10** Verify: `zig build` compiles 26 libraries + drydock binary
   in 5.5 seconds. All core libraries match Make output (missing only
   hbextern which needs .prg, and gtxwc which needs X11).
 - [x] **Z.2.11** Update blueprint artifacts.
@@ -128,7 +128,7 @@ Revert `build.zig` to Z.1 state. Make continues to work.
 
 ### Steps
 
-- [ ] **Z.3.1** Implement `addPrgToC` helper — runs harbour on a `.prg` file
+- [ ] **Z.3.1** Implement `addPrgToC` helper — runs drydock on a `.prg` file
   and captures the generated `.c` as a build artifact.
 - [ ] **Z.3.2** Add PRG files to hbvm (1 file: harbinit.prg).
 - [ ] **Z.3.3** Add PRG files to hbrtl (74 files). This is the largest step.
@@ -227,7 +227,7 @@ Keep old hbmk2 in a branch. The `.hbp` format is preserved.
 | PRG→C output path differs from expected | Z.3 | High | Test with multiple .prg files; capture stdout vs file output |
 | Contrib system deps not detected | Z.4 | Medium | Fall back to hbmk2 for affected contribs |
 | Team resistance to new tool | Z.5 | Low | Long coexistence period (Z.1-Z.4); both systems work |
-| Generated C from harbour contains absolute paths | Z.3 | Medium | Verify with diff; strip paths if needed |
+| Generated C from drydock contains absolute paths | Z.3 | Medium | Verify with diff; strip paths if needed |
 
 ---
 

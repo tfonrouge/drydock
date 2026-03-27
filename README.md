@@ -24,7 +24,7 @@ zig build
 make
 
 # Run tests
-bin/linux/gcc/ddtest       # or: zig-out/bin/ddtest
+bin/linux/gcc/ddtest
 
 # Compile and run a program
 bin/linux/gcc/ddmake tests/hello.prg
@@ -47,6 +47,7 @@ Drydock renames the user-facing binaries from the upstream Harbour names:
 | `ddrun` | `hbrun` | Script runner |
 | `ddpp` | `hbpp` | Preprocessor |
 | `ddformat` | `hbformat` | Code formatter |
+| `ddi18n` | `hbi18n` | i18n tool |
 
 Internal APIs (`hb_*`), libraries (`libhb*.a`), and file formats (`.hrb`,
 `.hbp`, `.hbc`) retain the `hb` prefix for backward compatibility.

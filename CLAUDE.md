@@ -15,26 +15,32 @@ libraries. See `doc/drydock.md` for the modernization plan.
 ## Build Commands
 
 ```bash
-# Full build (Linux)
+# Zig build (recommended — produces drydock compiler + all C libraries)
+zig build
+
+# Zig build with cross-compilation
+zig build -Dtarget=x86_64-windows-gnu
+
+# Legacy Make build (full build including contribs)
 make
 
-# Build and install
-make install
-
-# Compiler only (no contrib/RTL)
+# Make: compiler only (no contrib/RTL)
 make HB_BUILD_PARTS=compiler
 
-# Clean
+# Make: clean
 make clean
 
-# Debug build
+# Make: debug build
 make HB_BUILD_DEBUG=yes
 
-# Build a specific subdirectory
+# Make: build a specific subdirectory
 cd src/rtl && make
 
-# Build a specific contrib package
-cd contrib && hbmk2 make.hb <name> [clean]
+# Make: build a specific contrib package
+cd contrib && ddmake make.hb <name> [clean]
+
+# Create drydock symlinks after Make build
+bin/create-symlinks.sh
 ```
 
 On Windows use `win-make`, on DOS use `dos-make`, on OS/2 use `os2-make`.
