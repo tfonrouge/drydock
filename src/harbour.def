@@ -2959,6 +2959,7 @@ hb_numInt
 hb_numRound
 hb_numToStr
 hb_objGetClass
+hb_objGetScalarClass
 hb_objGetClsName
 hb_objGetRealClsName
 hb_objGetVarPtr

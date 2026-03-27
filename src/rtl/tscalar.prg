@@ -131,6 +131,15 @@ CREATE CLASS Array INHERIT HBScalar FUNCTION __HBArray
 
    MESSAGE Append  METHOD Add
 
+   /* Drydock: user-facing scalar methods */
+   METHOD Len()
+   METHOD Empty()
+   METHOD Sort( bCompare )
+   METHOD Tail()
+   METHOD Each( bBlock )
+   METHOD Map( bBlock )
+   METHOD Filter( bBlock )
+
 ENDCLASS
 
 METHOD Init( nElements ) CLASS Array
@@ -236,6 +245,52 @@ METHOD _Size( newSize ) CLASS Array
 
    RETURN newSize  // so that assignment works according to standard rules
 
+METHOD Len() CLASS Array
+   RETURN Len( Self )
+
+METHOD Empty() CLASS Array
+   RETURN Empty( Self )
+
+METHOD Sort( bCompare ) CLASS Array
+   RETURN ASort( Self,,, bCompare )
+
+METHOD Tail() CLASS Array
+   RETURN ATail( Self )
+
+METHOD Each( bBlock ) CLASS Array
+
+   LOCAL elem
+
+   FOR EACH elem IN Self
+      Eval( bBlock, elem, elem:__enumIndex() )
+   NEXT
+
+   RETURN Self
+
+METHOD Map( bBlock ) CLASS Array
+
+   LOCAL elem
+   LOCAL aResult := {}
+
+   FOR EACH elem IN Self
+      AAdd( aResult, Eval( bBlock, elem ) )
+   NEXT
+
+   RETURN aResult
+
+METHOD Filter( bBlock ) CLASS Array
+
+   LOCAL elem
+   LOCAL aResult := {}
+
+   FOR EACH elem IN Self
+      IF Eval( bBlock, elem )
+         AAdd( aResult, elem )
+      ENDIF
+   NEXT
+
+   RETURN aResult
+
 /* --- */
 
 CREATE CLASS Block INHERIT HBScalar FUNCTION __HBBlock
@@ -254,6 +309,22 @@ CREATE CLASS Character INHERIT HBScalar FUNCTION __HBCharacter
    METHOD AsString()
    METHOD AsExpStr()
 
+   /* Drydock: user-facing scalar methods */
+   METHOD Upper()
+   METHOD Lower()
+   METHOD Trim()
+   METHOD LTrim()
+   METHOD RTrim()
+   METHOD Left( n )
+   METHOD Right( n )
+   METHOD SubStr( nStart, nLen )
+   METHOD At( cSearch )
+   METHOD Len()
+   METHOD Empty()
+   METHOD Replicate( nTimes )
+   METHOD Split( cDelim )
+   METHOD Reverse()
+
 ENDCLASS
 
 METHOD AsString() CLASS Character
@@ -261,6 +332,58 @@ METHOD AsString() CLASS Character
 
 METHOD AsExpStr() CLASS Character
    RETURN '"' + Self + '"'
+
+METHOD Upper() CLASS Character
+   RETURN Upper( Self )
+
+METHOD Lower() CLASS Character
+   RETURN Lower( Self )
+
+METHOD Trim() CLASS Character
+   RETURN AllTrim( Self )
+
+METHOD LTrim() CLASS Character
+   RETURN LTrim( Self )
+
+METHOD RTrim() CLASS Character
+   RETURN RTrim( Self )
+
+METHOD Left( n ) CLASS Character
+   RETURN Left( Self, n )
+
+METHOD Right( n ) CLASS Character
+   RETURN Right( Self, n )
+
+METHOD SubStr( nStart, nLen ) CLASS Character
+   IF nLen == NIL
+      RETURN SubStr( Self, nStart )
+   ENDIF
+   RETURN SubStr( Self, nStart, nLen )
+
+METHOD At( cSearch ) CLASS Character
+   RETURN At( cSearch, Self )
+
+METHOD Len() CLASS Character
+   RETURN Len( Self )
+
+METHOD Empty() CLASS Character
+   RETURN Empty( Self )
+
+METHOD Replicate( nTimes ) CLASS Character
+   RETURN Replicate( Self, nTimes )
+
+METHOD Split( cDelim ) CLASS Character
+   RETURN hb_ATokens( Self, hb_defaultValue( cDelim, " " ) )
+
+METHOD Reverse() CLASS Character
+
+   LOCAL cResult := "", i
+
+   FOR i := Len( Self ) TO 1 STEP -1
+      cResult += SubStr( Self, i, 1 )
+   NEXT
+
+   RETURN cResult
 
 /* --- */
 
@@ -271,6 +394,12 @@ CREATE CLASS Date INHERIT HBScalar FUNCTION __HBDate
    METHOD Day()
    METHOD AsString()
    METHOD AsExpStr()
+
+   /* Drydock: user-facing scalar methods */
+   METHOD AddDays( nDays )
+   METHOD DiffDays( dOther )
+   METHOD DOW()
+   METHOD Empty()
 
 ENDCLASS
 
@@ -288,6 +417,18 @@ METHOD Month() CLASS Date
 
 METHOD Day() CLASS Date
    RETURN Day( Self )
+
+METHOD AddDays( nDays ) CLASS Date
+   RETURN Self + nDays
+
+METHOD DiffDays( dOther ) CLASS Date
+   RETURN Self - dOther
+
+METHOD DOW() CLASS Date
+   RETURN DOW( Self )
+
+METHOD Empty() CLASS Date
+   RETURN Empty( Self )
 
 /* --- */
 
@@ -343,10 +484,36 @@ CREATE CLASS Hash INHERIT HBScalar FUNCTION __HBHash
 
    METHOD AsString()
 
+   /* Drydock: user-facing scalar methods */
+   METHOD Keys()
+   METHOD Values()
+   METHOD Len()
+   METHOD Empty()
+   METHOD HasKey( xKey )
+   METHOD Del( xKey )
+
 ENDCLASS
 
 METHOD AsString() CLASS Hash
    RETURN "{ ... => ... }"
+
+METHOD Keys() CLASS Hash
+   RETURN hb_HKeys( Self )
+
+METHOD Values() CLASS Hash
+   RETURN hb_HValues( Self )
+
+METHOD Len() CLASS Hash
+   RETURN Len( Self )
+
+METHOD Empty() CLASS Hash
+   RETURN Empty( Self )
+
+METHOD HasKey( xKey ) CLASS Hash
+   RETURN hb_HHasKey( Self, xKey )
+
+METHOD Del( xKey ) CLASS Hash
+   RETURN hb_HDel( Self, xKey )
 
 /* --- */
 
@@ -354,10 +521,20 @@ CREATE CLASS Logical INHERIT HBScalar FUNCTION __HBLogical
 
    METHOD AsString()
 
+   /* Drydock: user-facing scalar methods */
+   METHOD IsTrue()
+   METHOD Toggle()
+
 ENDCLASS
 
 METHOD AsString() CLASS Logical
    RETURN iif( Self, ".T.", ".F." )
+
+METHOD IsTrue() CLASS Logical
+   RETURN Self
+
+METHOD Toggle() CLASS Logical
+   RETURN ! Self
 
 /* --- */
 
@@ -376,10 +553,50 @@ CREATE CLASS Numeric INHERIT HBScalar FUNCTION __HBNumeric
 
    METHOD AsString()
 
+   /* Drydock: user-facing scalar methods */
+   METHOD Abs()
+   METHOD Int()
+   METHOD Round( nDec )
+   METHOD Str( nLen, nDec )
+   METHOD Min( nOther )
+   METHOD Max( nOther )
+   METHOD Empty()
+   METHOD Between( nLow, nHigh )
+
 ENDCLASS
 
 METHOD AsString() CLASS Numeric
    RETURN hb_ntos( Self )
+
+METHOD Abs() CLASS Numeric
+   RETURN Abs( Self )
+
+METHOD Int() CLASS Numeric
+   RETURN Int( Self )
+
+METHOD Round( nDec ) CLASS Numeric
+   RETURN Round( Self, hb_defaultValue( nDec, 0 ) )
+
+METHOD Str( nLen, nDec ) CLASS Numeric
+   IF nLen == NIL
+      RETURN hb_ntos( Self )
+   ENDIF
+   IF nDec == NIL
+      RETURN Str( Self, nLen )
+   ENDIF
+   RETURN Str( Self, nLen, nDec )
+
+METHOD Min( nOther ) CLASS Numeric
+   RETURN Min( Self, nOther )
+
+METHOD Max( nOther ) CLASS Numeric
+   RETURN Max( Self, nOther )
+
+METHOD Empty() CLASS Numeric
+   RETURN Empty( Self )
+
+METHOD Between( nLow, nHigh ) CLASS Numeric
+   RETURN Self >= nLow .AND. Self <= nHigh
 
 /* --- */
 

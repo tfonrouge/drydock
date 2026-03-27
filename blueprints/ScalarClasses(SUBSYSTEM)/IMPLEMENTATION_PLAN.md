@@ -11,23 +11,21 @@
 - [ ] **S1.1** Add `hb_objGetScalarClass()` to `src/vm/classes.c` — thin wrapper
   over `hb_objGetClassH()`. Add declaration to `include/hbapicls.h`. Add export
   to `src/harbour.def`.
-- [ ] **S1.2** Add user-facing methods to Character class in `src/rtl/tscalar.prg`:
-  `Upper()`, `Lower()`, `Trim()`, `LTrim()`, `RTrim()`, `Left(n)`, `Right(n)`,
-  `SubStr(n,l)`, `At(cSub)`, `Len()`, `Empty()`, `Replicate(n)`, `Split(cDel)`.
-  Each wraps the corresponding RTL function.
-- [ ] **S1.3** Add user-facing methods to Numeric class: `Abs()`, `Int()`,
-  `Round(n)`, `Str(l,d)`, `Min(n)`, `Max(n)`, `Empty()`.
-- [ ] **S1.4** Add user-facing methods to Date/TimeStamp classes: `AddDays(n)`,
-  `DiffDays(d)`, `DOW()`, `Empty()`.
-- [ ] **S1.5** Add user-facing methods to Array class: `Len()`, `Empty()`,
-  `Sort(b)`, `Tail()`, `Each(b)`, `Map(b)`, `Filter(b)`.
-- [ ] **S1.6** Add user-facing methods to Hash class: `Keys()`, `Values()`,
-  `Len()`, `Empty()`, `HasKey(x)`, `Del(x)`.
-- [ ] **S1.7** Add user-facing methods to Logical class: `IsTrue()`, `Toggle()`.
-- [ ] **S1.8** Write test program `tests/scalar.prg` exercising all new methods.
-- [ ] **S1.9** Verify: `make && ddtest` — 4861/4861 pass (no regression).
-- [ ] **S1.10** Verify: `ddmake tests/scalar.prg && ./scalar` — all new methods work.
-- [ ] **S1.11** Update blueprint artifacts.
+- [x] **S1.2** Add user-facing methods to Character class: Upper, Lower, Trim,
+  LTrim, RTrim, Left, Right, SubStr, At, Len, Empty, Replicate, Split, Reverse.
+- [x] **S1.3** Add user-facing methods to Numeric class: Abs, Int, Round, Str,
+  Min, Max, Empty, Between.
+- [x] **S1.4** Add user-facing methods to Date class: AddDays, DiffDays, DOW, Empty.
+- [x] **S1.5** Add user-facing methods to Array class: Len, Empty, Sort, Tail,
+  Each, Map, Filter.
+- [x] **S1.6** Add user-facing methods to Hash class: Keys, Values, Len, Empty,
+  HasKey, Del.
+- [x] **S1.7** Add user-facing methods to Logical class: IsTrue, Toggle.
+- [x] **S1.8** Write test program `tests/scalar.prg` — 55 tests covering all
+  new methods. Uses `ENABLE TYPE CLASS ALL` from hbclass.ch.
+- [x] **S1.9** Verify: `ddtest` — 4861/4861 pass (no regression).
+- [x] **S1.10** Verify: `ddmake tests/scalar.prg -static -gtcgi` — 55/55 pass.
+- [x] **S1.11** Update blueprint artifacts.
 
 ### Files touched
 

@@ -1340,6 +1340,22 @@ HB_USHORT hb_objGetClass( PHB_ITEM pItem )
       return 0;
 }
 
+/* forward declaration — hb_objGetClassH is defined later in this file */
+static HB_USHORT hb_objGetClassH( PHB_ITEM pObject );
+
+/* Get the class handle for any item, including scalar types.
+ * Unlike hb_objGetClass() which returns 0 for non-objects, this function
+ * resolves scalar class handles (Character, Numeric, Date, etc.) via
+ * the internal hb_objGetClassH() mechanism.
+ * [Drydock addition for ScalarClasses workstream]
+ */
+HB_USHORT hb_objGetScalarClass( PHB_ITEM pItem )
+{
+   if( pItem )
+      return hb_objGetClassH( pItem );
+   return 0;
+}
+
 /* get object class handle using class name and class function name */
 HB_USHORT hb_objSetClass( PHB_ITEM pItem, const char * szClass, const char * szFunc )
 {
