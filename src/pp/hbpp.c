@@ -48,7 +48,7 @@
 
 #include "hbapi.h"
 
-#define _DEFAULT_ORIGIN_URL  "https://harbour.github.io/"
+#define _DEFAULT_ORIGIN_URL  "https://github.com/tfonrouge/drydock"
 
 int hb_verRevision( void )
 {

@@ -36,7 +36,7 @@ ifneq ($(HB_BUILD_PARTS),lib)
 endif
 
 clean::
-	$(if $(wildcard $(HB_VERHEADER)), -@$(RM) $(subst /,$(DIRSEP),$(HB_VERHEADER)),)
+	@echo "Note: hbverbld.h is checked in — not deleted during clean."
 
 endif
 endif

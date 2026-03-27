@@ -261,8 +261,8 @@ void hb_compPrintLogo( HB_COMP_DECL )
 {
    char * szVer = hb_verHarbour();
 
-   #define HB_VER_COMMIT_YEAR  "2021"
-   #define HB_VER_ORIGIN_URL   "https://harbour.github.io/"
+   #define HB_VER_COMMIT_YEAR  "2026"
+   #define HB_VER_ORIGIN_URL   "https://github.com/tfonrouge/drydock"
 
    hb_compOutStd( HB_COMP_PARAM, szVer );
    hb_compOutStd( HB_COMP_PARAM,
