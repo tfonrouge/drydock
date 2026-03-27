@@ -43,13 +43,13 @@ On Windows use `win-make`, on DOS use `dos-make`, on OS/2 use `os2-make`.
 
 ```bash
 # Run the test suite (after building)
-bin/linux/gcc/hbtest
+bin/linux/gcc/ddtest
 
 # Show all results (not just failures)
-bin/linux/gcc/hbtest -all
+bin/linux/gcc/ddtest -all
 
 # Compile and run a single .prg test
-bin/linux/gcc/hbmk2 tests/hello.prg
+bin/linux/gcc/ddmake tests/hello.prg
 ```
 
 The path `bin/linux/gcc/` varies by platform and compiler.
@@ -61,10 +61,10 @@ The path `bin/linux/gcc/` varies by platform and compiler.
 uncrustify -c bin/harbour.ucf <file.c>
 
 # Harbour .prg/.hb/.ch files
-bin/linux/gcc/hbformat <file.prg>
+bin/linux/gcc/ddformat <file.prg>
 
 # Pre-commit validation (encoding, whitespace, filenames)
-hbrun bin/check.hb
+ddrun bin/check.hb
 ```
 
 ## Compilation Pipeline

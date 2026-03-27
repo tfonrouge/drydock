@@ -17,20 +17,39 @@ the build system with a single `build.zig`.
 ## Quick Start (Linux)
 
 ```bash
-# Build
+# Build (via zig — recommended)
+zig build
+
+# Build (via make — legacy)
 make
 
 # Run tests
-bin/linux/gcc/hbtest
+bin/linux/gcc/ddtest       # or: zig-out/bin/ddtest
 
 # Compile and run a program
-bin/linux/gcc/hbmk2 tests/hello.prg
+bin/linux/gcc/ddmake tests/hello.prg
 ```
 
 On Windows use `win-make`, on OS/2 use `os2-make`, on MS-DOS use `dos-make`.
 
 For the full platform matrix and build options, see
 [doc/upstream-README.md](doc/upstream-README.md).
+
+### Binary Names
+
+Drydock renames the user-facing binaries from the upstream Harbour names:
+
+| Drydock | Harbour | Purpose |
+|---------|---------|---------|
+| `drydock` | `harbour` | Compiler |
+| `ddmake` | `hbmk2` | Build tool |
+| `ddtest` | `hbtest` | Test suite |
+| `ddrun` | `hbrun` | Script runner |
+| `ddpp` | `hbpp` | Preprocessor |
+| `ddformat` | `hbformat` | Code formatter |
+
+Internal APIs (`hb_*`), libraries (`libhb*.a`), and file formats (`.hrb`,
+`.hbp`, `.hbc`) retain the `hb` prefix for backward compatibility.
 
 ## Project Documents
 
@@ -68,7 +87,7 @@ documented, non-silent, and discoverable at compile time. See
 uncrustify -c bin/harbour.ucf <file.c>
 
 # Harbour .prg/.hb/.ch files
-bin/linux/gcc/hbformat <file.prg>
+bin/linux/gcc/ddformat <file.prg>
 ```
 
 ## License

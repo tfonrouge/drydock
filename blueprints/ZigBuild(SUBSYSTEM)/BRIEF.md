@@ -336,9 +336,9 @@ and `-include` for `.d` files in `config/c.mk` and `config/prg.mk`.
 Add `build.zig` that builds the `harbour` compiler binary. Phase 1 only
 (pure C, no .prg). Keep Make for everything else.
 
-**Verification**: `zig build` produces a working `harbour` binary.
-`harbour -n -w3 -es2 tests/hello.prg` compiles without error and produces
-`hello.c`. (Full `hbtest` requires the runtime, which is Phase Z.2+.)
+**Verification**: `zig build` produces a working `drydock` binary.
+`drydock -n -w3 -es2 tests/hello.prg` compiles without error and produces
+`hello.c`. (Full `ddtest` requires the runtime, which is Phase Z.2+.)
 
 **Coexistence**: both `make` and `zig build` work. Developers choose.
 

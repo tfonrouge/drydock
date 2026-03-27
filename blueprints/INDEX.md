@@ -69,3 +69,4 @@
 | ZigBuild Phase Z.0 | 2026-03-26 | `-MMD -MP` header dependency tracking; incremental builds work (`70d3813`) |
 | ZigBuild Phase Z.1 | 2026-03-26 | `build.zig` compiler bootstrap; `zig build` produces working `harbour`; cross-compilation to Windows verified |
 | ZigBuild Phase Z.2 | 2026-03-26 | Full C build — 26 static libraries (vm, rtl, macro, rdd, codepage, lang, debug, pcre, zlib, GT drivers) in 5.5s |
+| Binary rename | 2026-03-26 | harbour→drydock, hbmk2→ddmake, hbtest→ddtest, hbrun→ddrun, hbpp→ddpp, hbformat→ddformat |

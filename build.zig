@@ -18,8 +18,8 @@ pub fn build(b: *std.Build) void {
     hbcplr.addCSourceFile(.{ .file = b.path("src/compiler/harboury.c"), .flags = harbour_cflags });
     hbcplr.addIncludePath(b.path("src/compiler"));
 
-    // harbour compiler executable
-    const harbour = b.addExecutable(.{ .name = "harbour", .target = target, .optimize = optimize });
+    // drydock compiler executable (Harbour-compatible compiler)
+    const harbour = b.addExecutable(.{ .name = "drydock", .target = target, .optimize = optimize });
     harbour.addCSourceFile(.{ .file = b.path("src/main/harbour.c"), .flags = harbour_cflags });
     harbour.addIncludePath(b.path("include"));
     harbour.linkLibrary(hbcplr);
@@ -113,7 +113,7 @@ pub fn build(b: *std.Build) void {
     // Steps
     // ---------------------------------------------------------------
 
-    const run_step = b.step("run", "Run the harbour compiler");
+    const run_step = b.step("run", "Run the drydock compiler");
     const run_cmd = b.addRunArtifact(harbour);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
