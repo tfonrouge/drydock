@@ -19,7 +19,7 @@
 
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
-| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- |
+| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- |
 | B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | RefactorHvm Phases 0-1 (for Phase 3) |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
 | D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm Phase 3 (branch hints) |
@@ -71,3 +71,4 @@
 | ZigBuild Phase Z.2 | 2026-03-26 | Full C build — 26 static libraries (vm, rtl, macro, rdd, codepage, lang, debug, pcre, zlib, GT drivers) in 5.5s |
 | Binary rename | 2026-03-26 | harbour→drydock, hbmk2→ddmake, hbtest→ddtest, hbrun→ddrun, hbpp→ddpp, hbformat→ddformat |
 | ZigBuild Phase Z.3 | 2026-03-27 | Two-phase bootstrap: 115 `.prg` → `.c` via `captureStdOut`, ddtest links and runs |
+| RefactorHvm Phase 0 | 2026-03-27 | Dead code removal: 733 lines (12 unused xvm*Int functions + `#if 0` block) |

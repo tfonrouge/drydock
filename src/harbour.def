@@ -3669,8 +3669,6 @@ hb_xvmEnumNext
 hb_xvmEnumPrev
 hb_xvmEnumStart
 hb_xvmEqual
-hb_xvmEqualInt
-hb_xvmEqualIntIs
 hb_xvmExactlyEqual
 hb_xvmExitProc
 hb_xvmExpEq
@@ -3681,10 +3679,6 @@ hb_xvmFuncPtr
 hb_xvmFunction
 hb_xvmGreater
 hb_xvmGreaterEqual
-hb_xvmGreaterEqualThenInt
-hb_xvmGreaterEqualThenIntIs
-hb_xvmGreaterThenInt
-hb_xvmGreaterThenIntIs
 hb_xvmHashGen
 hb_xvmInc
 hb_xvmIncEq
@@ -3692,10 +3686,6 @@ hb_xvmIncEqPop
 hb_xvmInstring
 hb_xvmLess
 hb_xvmLessEqual
-hb_xvmLessEqualThenInt
-hb_xvmLessEqualThenIntIs
-hb_xvmLessThenInt
-hb_xvmLessThenIntIs
 hb_xvmLocalAdd
 hb_xvmLocalAddInt
 hb_xvmLocalDec
@@ -3733,8 +3723,6 @@ hb_xvmMultEqPop
 hb_xvmNegate
 hb_xvmNot
 hb_xvmNotEqual
-hb_xvmNotEqualInt
-hb_xvmNotEqualIntIs
 hb_xvmOr
 hb_xvmParameter
 hb_xvmPlus
