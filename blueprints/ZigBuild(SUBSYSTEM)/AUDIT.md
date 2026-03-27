@@ -11,6 +11,8 @@
 | BRIEF.md | Scope table | Shows Z.0 effort as "1 day" | Actual: ~2 hours including research, implementation, testing | Low | Cosmetic — no action needed |
 | ALL artifacts | Binary name | ~100 references to `harbour` as binary name | Binary renamed to `drydock` (commit `ea1d273`) | High | **Fixed** — bulk replacement in BRIEF, DESIGN, PLAN, TEST_PLAN (2026-03-27) |
 | src/main/harbour.c, src/vm/runner.c | File existence | Should exist on disk | Accidentally deleted during Z.3 stash cleanup | Critical | **Fixed** — `git restore` on 2026-03-27 |
+| IMPLEMENTATION_PLAN.md | Z.3 steps | All marked `[ ]` | Z.3 implemented in commit `62b7698` | High | **Fixed** — steps checked off with notes (2026-03-27) |
+| TEST_PLAN.md | Z.3 results | No `Result:` lines | Tests executed | High | **Fixed** — results recorded (2026-03-27) |
 
 ## Process Gaps
 

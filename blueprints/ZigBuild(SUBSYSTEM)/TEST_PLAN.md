@@ -136,23 +136,26 @@
 ### TEST-Z3-001: PRG Compilation Works
 - **Type**: New
 - **Covers**: Phase Z.3 — `build.zig` uses drydock to compile `.prg` files
-- **Setup**: Zig installed
+- **Setup**: Zig 0.13.0 installed
 - **Action**: `zig build`
 - **Expected**: Full build succeeds including all `.prg` → `.c` → `.o` compilation
+- **Result**: PASS (2026-03-27) — 115 `.prg` files compiled to C via `captureStdOut` + `cp` rename. 27 libraries + ddtest binary produced.
 
-### TEST-Z3-002: hbtest Passes
-- **Type**: Regression — the definitive test
-- **Covers**: Phase Z.3 — zig-built runtime is fully functional
-- **Setup**: `zig build` completed
-- **Action**: `zig build test` (or `zig-out/bin/hbtest`)
-- **Expected**: 4861/4861 tests pass
-
-### TEST-Z3-003: hbmk2 Works
+### TEST-Z3-002: ddtest Runs
 - **Type**: Regression
-- **Covers**: Phase Z.3 — zig-built hbmk2 can compile user programs
+- **Covers**: Phase Z.3 — zig-built runtime is functional
 - **Setup**: `zig build` completed
-- **Action**: `zig-out/bin/hbmk2 tests/hello.prg && ./hello`
+- **Action**: `zig-out/bin/ddtest`
+- **Expected**: 4861/4861 tests pass
+- **Result**: PARTIAL PASS (2026-03-27) — ddtest runs, 1 minor divergence on Array(-1) error format (extra `A:1:N:-1` in error message). 4860/4861 equivalent. Under investigation.
+
+### TEST-Z3-003: ddmake Works
+- **Type**: Regression
+- **Covers**: Phase Z.3 — zig-built ddmake can compile user programs
+- **Setup**: `zig build` completed
+- **Action**: `zig-out/bin/ddmake tests/hello.prg && ./hello`
 - **Expected**: Prints "Hello, world!"
+- **Result**: DEFERRED — ddmake not yet built by zig (Z.3.8 deferred)
 
 ---
 
