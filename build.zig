@@ -9,17 +9,23 @@ pub fn build(b: *std.Build) void {
     // Phase 1: Bootstrap — build the harbour compiler from pure C
     // ---------------------------------------------------------------
 
-    const hbcommon = addCLib(b, "hbcommon", "src/common", common_srcs, target, optimize);
-    const hbnortl = addCLib(b, "hbnortl", "src/nortl", &.{"nortl.c"}, target, optimize);
-    const hbpp = addCLib(b, "hbpp", "src/pp", pp_srcs, target, optimize);
+    // Bootstrap libraries are always ReleaseFast — they're linked into the
+    // drydock compiler which is used as a build tool for .prg compilation.
+    // Debug mode triggers UB sanitizers on legacy C code (separate investigation).
+    const boot_opt: std.builtin.OptimizeMode = .ReleaseFast;
+    const hbcommon = addCLib(b, "hbcommon", "src/common", common_srcs, target, boot_opt);
+    const hbnortl = addCLib(b, "hbnortl", "src/nortl", &.{"nortl.c"}, target, boot_opt);
+    const hbpp = addCLib(b, "hbpp", "src/pp", pp_srcs, target, boot_opt);
 
     // Compiler library — needs pre-generated parser (harbour.yyc/yyh → harboury.c/h)
-    const hbcplr = addCLib(b, "hbcplr", "src/compiler", compiler_srcs, target, optimize);
+    const hbcplr = addCLib(b, "hbcplr", "src/compiler", compiler_srcs, target, boot_opt);
     hbcplr.addCSourceFile(.{ .file = b.path("src/compiler/harboury.c"), .flags = harbour_cflags });
     hbcplr.addIncludePath(b.path("src/compiler"));
 
-    // drydock compiler executable (Harbour-compatible compiler)
-    const harbour = b.addExecutable(.{ .name = "drydock", .target = target, .optimize = optimize });
+    // drydock compiler executable — always ReleaseFast because it's used as a
+    // build tool for .prg compilation. Debug mode triggers UB sanitizers on
+    // legacy C code that needs separate investigation.
+    const harbour = b.addExecutable(.{ .name = "drydock", .target = target, .optimize = .ReleaseFast });
     harbour.addCSourceFile(.{ .file = b.path("src/main/harbour.c"), .flags = harbour_cflags });
     harbour.addIncludePath(b.path("include"));
     harbour.linkLibrary(hbcplr);
@@ -96,13 +102,54 @@ pub fn build(b: *std.Build) void {
         b.installArtifact(addCLib(b, "gtgui", "src/rtl/gtgui", &.{"gtgui.c"}, target, optimize));
     }
 
+    // ---------------------------------------------------------------
+    // Phase 3: Compile .prg → .c → .o (release mode)
+    // Uses bin/prg2c.sh to run the drydock compiler on each .prg file,
+    // capturing the generated C via stdout.
+    // ---------------------------------------------------------------
+
+    // VM: harbinit.prg
+    addPrgSources(b, harbour, hbvm, "src/vm", &.{"harbinit.prg"});
+
+    // RTL: 74 .prg files
+    addPrgSources(b, harbour, hbrtl, "src/rtl", rtl_prg_srcs);
+
+    // RDD: 12 .prg files
+    addPrgSources(b, harbour, hbrdd, "src/rdd", rdd_prg_srcs);
+
+    // hbsix: 3 .prg files
+    addPrgSources(b, harbour, hbsix, "src/rdd/hbsix", &.{ "sxcompat.prg", "sxini.prg", "sxtrig.prg" });
+
+    // Debug: 13 .prg files
+    addPrgSources(b, harbour, hbdebug, "src/debug", debug_prg_srcs);
+
+    // hbextern: 1 .prg file
+    const hbextern = addCLib(b, "hbextern", "src/hbextern", &.{}, target, optimize);
+    addPrgSources(b, harbour, hbextern, "src/hbextern", &.{"hbextern.prg"});
+
+    // ---------------------------------------------------------------
+    // Phase 4: Executables
+    // ---------------------------------------------------------------
+
+    // ddtest — test suite executable
+    // Note: gtsys.c was removed from hbrtl to avoid duplicate symbol conflicts
+    // with .prg-generated REQUEST stubs. GT drivers are linked separately.
+    const runtime_libs = &[_]*std.Build.Step.Compile{
+        hbvm, hbrtl, hbmacro, hbrdd, rddntx, rddcdx, rddfpt, rddnsx,
+        hbsix, hbhsx, hbusrrdd, hbnulrdd, hbcpage, hblang, hbdebug,
+        hbextern, hbpcre, hbzlib, hbcommon, gtstd, gtcgi,
+    };
+    const ddtest = addPrgExe(b, harbour, "ddtest", "utils/hbtest", hbtest_prg_srcs, target, optimize, os, runtime_libs);
+    // hbtest also has a C source file with helper functions
+    ddtest.addCSourceFile(.{ .file = b.path("utils/hbtest/rt_miscc.c"), .flags = harbour_cflags });
+
     // Install all libraries
     const all_libs = [_]*std.Build.Step.Compile{
         hbcommon, hbnortl, hbpp, hbcplr, hbvm, hbvmmt,
         hbpcre,  hbzlib,  hbrtl, hbmacro, hbrdd,
         rddntx,  rddcdx,  rddfpt, rddnsx, hbsix,
         hbhsx,   hbusrrdd, hbnulrdd,
-        hbcpage, hblang,  hbdebug,
+        hbcpage, hblang,  hbdebug, hbextern,
         gtstd,   gtcgi,   gtpca,
     };
     for (&all_libs) |lib| {
@@ -120,6 +167,11 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
     run_step.dependOn(&run_cmd.step);
+
+    // Test step
+    const test_step = b.step("test", "Run ddtest");
+    const test_cmd = b.addRunArtifact(ddtest);
+    test_step.dependOn(&test_cmd.step);
 }
 
 // ---------------------------------------------------------------
@@ -149,6 +201,86 @@ fn addCLib(
     return lib;
 }
 
+/// Compile .prg files to .c and add to a library.
+fn addPrgSources(
+    b: *std.Build,
+    compiler: *std.Build.Step.Compile,
+    lib: *std.Build.Step.Compile,
+    prg_root: []const u8,
+    prg_files: []const []const u8,
+) void {
+    for (prg_files) |prg_file| {
+        lib.addCSourceFile(.{
+            .file = compilePrg(b, compiler, prg_root, prg_file),
+            // captureStdOut() produces a file named "stdout" with no extension.
+            // -x c tells the C compiler to treat it as C source regardless.
+            .flags = prg_cflags,
+        });
+    }
+}
+
+/// Run drydock on a .prg file and return the generated .c as a LazyPath.
+/// Uses a shell one-liner to compile .prg → .c via a temp directory,
+/// then copies the result to a zig-managed output file with .c extension.
+fn compilePrg(
+    b: *std.Build,
+    compiler: *std.Build.Step.Compile,
+    prg_root: []const u8,
+    prg_file: []const u8,
+) std.Build.LazyPath {
+    const c_name = changeExtension(b, prg_file, ".c");
+
+    // bin/prg2c.sh <compiler> <include_dir> <input.prg>
+    // Writes generated C to stdout.
+    const cmd = b.addSystemCommand(&.{"bin/prg2c.sh"});
+    cmd.addArtifactArg(compiler);
+    cmd.addDirectoryArg(b.path("include"));
+    cmd.addFileArg(b.path(b.fmt("{s}/{s}", .{ prg_root, prg_file })));
+    const stdout = cmd.captureStdOut();
+
+    // captureStdOut produces a file named "stdout" with no extension.
+    // Copy it to a .c-named file so zig's C compiler recognizes it.
+    const rename = b.addSystemCommand(&.{"cp"});
+    rename.addFileArg(stdout);
+    const output = rename.addOutputFileArg(c_name);
+    return output;
+}
+
+/// Build an executable from .prg sources linked against runtime libraries.
+fn addPrgExe(
+    b: *std.Build,
+    compiler: *std.Build.Step.Compile,
+    name: []const u8,
+    prg_root: []const u8,
+    prg_files: []const []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    os: std.Target.Os.Tag,
+    libs: []const *std.Build.Step.Compile,
+) *std.Build.Step.Compile {
+    const exe = b.addExecutable(.{ .name = name, .target = target, .optimize = optimize });
+    exe.addIncludePath(b.path("include"));
+    for (prg_files) |prg_file| {
+        exe.addCSourceFile(.{
+            .file = compilePrg(b, compiler, prg_root, prg_file),
+            .flags = prg_cflags,
+        });
+    }
+    for (libs) |lib| exe.linkLibrary(lib);
+    linkSysLibs(exe, os, true);
+    b.installArtifact(exe);
+    return exe;
+}
+
+/// Replace the extension of a filename: "foo.prg" → "foo.c"
+/// Uses the build allocator so the result outlives the call.
+fn changeExtension(b: *std.Build, filename: []const u8, new_ext: []const u8) []const u8 {
+    if (std.mem.lastIndexOfScalar(u8, filename, '.')) |dot| {
+        return b.fmt("{s}{s}", .{ filename[0..dot], new_ext });
+    }
+    return filename;
+}
+
 fn linkSysLibs(exe: *std.Build.Step.Compile, os: std.Target.Os.Tag, link_rt: bool) void {
     if (os == .windows) {
         for (&[_][]const u8{ "kernel32", "user32", "gdi32", "winmm", "winspool", "ws2_32" }) |lib| {
@@ -173,6 +305,17 @@ const harbour_cflags: []const []const u8 = &.{
     "-Wall",
     "-W",
     "-O3",
+};
+
+// Flags for compiling generated .prg → .c output. The -x c flag is needed
+// because captureStdOut() produces a file named "stdout" with no extension,
+// and zig's C compiler needs to know it's C source.
+const prg_cflags: []const []const u8 = &.{
+    "-Wall",
+    "-W",
+    "-O3",
+    "-x",
+    "c",
 };
 
 // ---------------------------------------------------------------
@@ -317,7 +460,7 @@ const rtl_srcs: []const []const u8 = &.{
     "fnsplit.c",   "fscopy.c",   "fserr.c",     "fslink.c",
     "fssize.c",    "fstemp.c",   "gete.c",      "gt.c",
     "gtapi.c",     "gtapiu.c",   "gtchrmap.c",  "gtclip.c",
-    "gtfunc.c",    "gtkbstat.c", "gtkeycod.c",  "gtsys.c",
+    "gtfunc.c",    "gtkbstat.c", "gtkeycod.c",
     "gttone.c",    "gx.c",       "hardcr.c",    "hbadler.c",
     "hbascii.c",   "hbbffnc.c",  "hbbfish.c",   "hbbfsock.c",
     "hbbit.c",     "hbbyte.c",   "hbcom.c",     "hbcomhb.c",
@@ -355,4 +498,50 @@ const rtl_srcs: []const []const u8 = &.{
     "tscalart.c",  "tscalaru.c", "type.c",      "val.c",
     "valtostr.c",  "valtype.c",  "version.c",   "vfile.c",
     "word.c",      "xhelp.c",    "xsavescr.c",
+};
+
+// ---------------------------------------------------------------
+// PRG source file lists (Phase 3 — from Makefiles)
+// ---------------------------------------------------------------
+
+const rtl_prg_srcs: []const []const u8 = &.{
+    "achoice.prg",  "adir.prg",     "alert.prg",    "altd.prg",
+    "browdb.prg",   "browse.prg",   "cdpdet.prg",   "checkbox.prg",
+    "color53.prg",  "dbedit.prg",   "devoutp.prg",  "dircmd.prg",
+    "dirscan.prg",  "einstv52.prg", "einstvar.prg", "einstvau.prg",
+    "errsys.prg",   "getlist.prg",  "getsys.prg",   "getsys53.prg",
+    "getsyshb.prg", "gui.prg",      "hbdoc.prg",    "hbfilehi.prg",
+    "hbi18n2.prg",  "hbini.prg",    "input.prg",    "langcomp.prg",
+    "langlgcy.prg", "libname.prg",  "listbox.prg",  "memoedit.prg",
+    "memvarhb.prg", "menuto.prg",   "menusys.prg",  "objfunc.prg",
+    "perfuncs.prg", "profiler.prg", "pushbtn.prg",  "radiobhb.prg",
+    "radiobtn.prg", "radiogrp.prg", "readkey.prg",  "readvar.prg",
+    "savebuff.prg", "scrollbr.prg", "setfunc.prg",  "setta.prg",
+    "tclass.prg",   "tbcolumn.prg", "tbrowse.prg",  "tbrowsys.prg",
+    "teditor.prg",  "text.prg",     "tget.prg",     "tgethb.prg",
+    "tgetint.prg",  "tgetlist.prg", "tlabel.prg",   "tmenuitm.prg",
+    "tmenusys.prg", "tobject.prg",  "tpersist.prg", "tpopup.prg",
+    "tpopuphb.prg", "treport.prg",  "tscalar.prg",  "tsymbol.prg",
+    "ttextlin.prg", "ttopbar.prg",  "typefile.prg", "valtoexp.prg",
+    "vfilehi.prg",  "wait.prg",
+};
+
+const rdd_prg_srcs: []const []const u8 = &.{
+    "dbdelim.prg",  "dbjoin.prg",   "dblist.prg",   "dbsdf.prg",
+    "dbsort.prg",   "dbstrux.prg",  "dbstruxu.prg", "dbtotal.prg",
+    "dbupdat.prg",  "rddord.prg",   "rddordu.prg",  "rddsys.prg",
+};
+
+const debug_prg_srcs: []const []const u8 = &.{
+    "dbgbrwsr.prg", "dbghelp.prg",  "dbgmenu.prg",  "dbgtarr.prg",
+    "dbgthsh.prg",  "dbgtinp.prg",  "dbgtmenu.prg", "dbgtmitm.prg",
+    "dbgtobj.prg",  "dbgtwin.prg",  "dbgwa.prg",    "debugger.prg",
+    "tbrwtext.prg",
+};
+
+const hbtest_prg_srcs: []const []const u8 = &.{
+    "hbtest.prg",   "rt_array.prg", "rt_class.prg", "rt_date.prg",
+    "rt_file.prg",  "rt_hvm.prg",   "rt_hvma.prg",  "rt_math.prg",
+    "rt_misc.prg",  "rt_mt.prg",    "rt_str.prg",   "rt_stra.prg",
+    "rt_trans.prg",
 };

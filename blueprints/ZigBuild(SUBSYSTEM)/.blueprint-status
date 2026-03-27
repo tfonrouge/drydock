@@ -1,1 +1,1 @@
-ACTIVE: Z.0 done, Z.1 done, Z.2 done (2026-03-26). Next: Phase Z.3 (two-phase bootstrap with .prg).
+ACTIVE: Z.0-Z.3 done (2026-03-27). Full two-phase bootstrap works. Minor ddtest divergence under investigation.

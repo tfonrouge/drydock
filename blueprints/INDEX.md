@@ -70,3 +70,4 @@
 | ZigBuild Phase Z.1 | 2026-03-26 | `build.zig` compiler bootstrap; `zig build` produces working `harbour`; cross-compilation to Windows verified |
 | ZigBuild Phase Z.2 | 2026-03-26 | Full C build — 26 static libraries (vm, rtl, macro, rdd, codepage, lang, debug, pcre, zlib, GT drivers) in 5.5s |
 | Binary rename | 2026-03-26 | harbour→drydock, hbmk2→ddmake, hbtest→ddtest, hbrun→ddrun, hbpp→ddpp, hbformat→ddformat |
+| ZigBuild Phase Z.3 | 2026-03-27 | Two-phase bootstrap: 115 `.prg` → `.c` via `captureStdOut`, ddtest links and runs |

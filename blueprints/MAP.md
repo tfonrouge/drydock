@@ -46,7 +46,7 @@ Tier 0 (ZigBuild) is independent — runs in parallel with everything.
 
 | Blueprint | Status | Goal This Sprint |
 |-----------|--------|-----------------|
-| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0-Z.2 done (2026-03-26).~~ Next: Phase Z.3 — `.hrb`-first dev builds + C release path. |
+| ZigBuild(SUBSYSTEM) | :yellow_circle: ACTIVE | ~~Z.0-Z.3 done (2026-03-27).~~ Next: Phase Z.4 (contrib migration) or Z.3 dev mode (.hrb path). |
 | HRBModern(FEATURE) | :yellow_circle: ACTIVE | ~~Phase H.1: v3 writer + reader done (2026-03-26).~~ Next: H.2 (bundling) or H.4 (`-dp` disassembler). |
 | RefactorHvm(SUBSYSTEM) | :blue_circle: PLANNING | Begin Phase 0 (dead code removal — 680 lines, zero callers) |
 | ScalarClasses(SUBSYSTEM) | :blue_circle: PLANNING | BRIEF + DESIGN complete; begin Phase 1 once RefactorHvm Phase 0 lands |
