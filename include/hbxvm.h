@@ -234,6 +234,19 @@ extern HB_EXPORT void hb_xvmLocalSetInt( int iLocal, HB_LONG lValue );
 /*extern HB_EXPORT void hb_xvmLocalSetStr( int iLocal, const char * pValue, HB_SIZE nLen );*/
 extern HB_EXPORT void hb_xvmPushFuncSymbol( PHB_SYMB pSym );
 
+extern HB_EXPORT HB_BOOL hb_xvmLessThenInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmLessThenIntIs( HB_LONG lValue, HB_BOOL * fValue );
+extern HB_EXPORT HB_BOOL hb_xvmLessEqualThenInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmLessEqualThenIntIs( HB_LONG lValue, HB_BOOL * fValue );
+extern HB_EXPORT HB_BOOL hb_xvmGreaterThenInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmGreaterThenIntIs( HB_LONG lValue, HB_BOOL * fValue );
+extern HB_EXPORT HB_BOOL hb_xvmGreaterEqualThenInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmGreaterEqualThenIntIs( HB_LONG lValue, HB_BOOL * fValue );
+extern HB_EXPORT HB_BOOL hb_xvmEqualInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmEqualIntIs( HB_LONG lValue, HB_BOOL * fValue );
+extern HB_EXPORT HB_BOOL hb_xvmNotEqualInt( HB_LONG lValue );
+extern HB_EXPORT HB_BOOL hb_xvmNotEqualIntIs( HB_LONG lValue, HB_BOOL * fValue );
+
 extern HB_EXPORT HB_BOOL hb_xvmLocalAdd( int iLocal );
 extern HB_EXPORT HB_BOOL hb_xvmStaticAdd( HB_USHORT uiStatic );
 extern HB_EXPORT HB_BOOL hb_xvmMemvarAdd( PHB_SYMB pSymbol );

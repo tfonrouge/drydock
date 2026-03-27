@@ -4042,6 +4042,16 @@ static void hb_vmEqual( void )
       pItem1->type = HB_IT_LOGICAL;
       pItem1->item.asLogical.value = fResult;
    }
+#if 0
+   else if( HB_IS_HASH( pItem1 ) && HB_IS_HASH( pItem2 ) )
+   {
+      HB_BOOL fResult = pItem1->item.asHash.value == pItem2->item.asHash.value;
+      hb_stackPop();
+      hb_itemClear( pItem1 );
+      pItem1->type = HB_IT_LOGICAL;
+      pItem1->item.asLogical.value = fResult;
+   }
+#endif
    else if( hb_objOperatorCall( HB_OO_OP_EQUAL, pItem1, pItem1, pItem2, NULL ) )
       hb_stackPop();
    else
@@ -10258,6 +10268,729 @@ HB_BOOL hb_xvmExactlyEqual( void )
    HB_TRACE( HB_TR_DEBUG, ( "hb_xvmExactlyEqual()" ) );
 
    hb_vmExactlyEqual();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmEqualInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmEqualInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value == lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value == ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value == ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value == ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_NIL( pItem ) )
+   {
+      pItem->item.asLogical.value = HB_FALSE;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_EQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_EQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1071, NULL, "=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmEqualIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmEqualIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value == lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value == ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value == ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value == ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_NIL( pItem ) )
+   {
+      *pfValue = HB_FALSE;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_EQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_EQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1071, NULL, "=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmNotEqual( void )
+{
+   HB_STACK_TLS_PRELOAD
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmNotEqual()" ) );
+
+   hb_vmNotEqual();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmNotEqualInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmNotEqualInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value != lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value != ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value != ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value != ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_NIL( pItem ) )
+   {
+      pItem->item.asLogical.value = HB_TRUE;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_NOTEQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_NOTEQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1072, NULL, "<>", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmNotEqualIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmNotEqualIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value != lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value != ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value != ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value != ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_NIL( pItem ) )
+   {
+      *pfValue = HB_TRUE;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_NOTEQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_NOTEQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1072, NULL, "<>", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLess( void )
+{
+   HB_STACK_TLS_PRELOAD
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLess()" ) );
+
+   hb_vmLess();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLessThenInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLessThenInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value < lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value < ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value < ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value < ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_LESS ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_LESS, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1073, NULL, "<", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLessThenIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLessThenIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value < lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value < ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value < ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value < ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_LESS ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_LESS, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1073, NULL, "<", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLessEqual( void )
+{
+   HB_STACK_TLS_PRELOAD
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLessEqual()" ) );
+
+   hb_vmLessEqual();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLessEqualThenInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLessEqualThenInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value <= lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value <= ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value <= ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value <= ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_LESSEQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_LESSEQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1074, NULL, "<=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmLessEqualThenIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmLessEqualThenIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value <= lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value <= ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value <= ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value <= ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_LESSEQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_LESSEQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1074, NULL, "<=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreater( void )
+{
+   HB_STACK_TLS_PRELOAD
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreater()" ) );
+
+   hb_vmGreater();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreaterThenInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreaterThenInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value > lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value > ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value > ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value > ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_GREATER ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_GREATER, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1075, NULL, ">", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreaterThenIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreaterThenIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value > lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value > ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value > ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value > ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_GREATER ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_GREATER, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1075, NULL, ">", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreaterEqual( void )
+{
+   HB_STACK_TLS_PRELOAD
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreaterEqual()" ) );
+
+   hb_vmGreaterEqual();
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreaterEqualThenInt( HB_LONG lValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreaterEqualThenInt(%ld)", lValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      pItem->item.asLogical.value = ( HB_LONG ) pItem->item.asInteger.value >= lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value >= ( HB_MAXINT ) lValue;
+      pItem->item.asLogical.value = f;
+#else
+      pItem->item.asLogical.value = pItem->item.asLong.value >= ( HB_MAXINT ) lValue;
+#endif
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      pItem->item.asLogical.value = pItem->item.asDouble.value >= ( double ) lValue;
+      pItem->type = HB_IT_LOGICAL;
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_GREATEREQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_GREATEREQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1076, NULL, ">=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+      }
+   }
+
+   HB_XVM_RETURN
+}
+
+HB_BOOL hb_xvmGreaterEqualThenIntIs( HB_LONG lValue, HB_BOOL * pfValue )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pItem;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_xvmGreaterEqualThenIntIs(%ld,%p)", lValue, ( void * ) pfValue ) );
+
+   pItem = hb_stackItemFromTop( -1 );
+   if( HB_IS_INTEGER( pItem ) )
+   {
+      *pfValue = ( HB_LONG ) pItem->item.asInteger.value >= lValue;
+      hb_stackDec();
+   }
+   else if( HB_IS_LONG( pItem ) )
+   {
+#if defined( __DCC__ ) /* NOTE: Workaround for vxworks/diab/x86 5.8.0.0 compiler bug. */
+      HB_BOOL f = pItem->item.asLong.value >= ( HB_MAXINT ) lValue;
+      *pfValue = f;
+#else
+      *pfValue = pItem->item.asLong.value >= ( HB_MAXINT ) lValue;
+#endif
+      hb_stackDec();
+   }
+   else if( HB_IS_DOUBLE( pItem ) )
+   {
+      *pfValue = pItem->item.asDouble.value >= ( double ) lValue;
+      hb_stackDec();
+   }
+   else if( hb_objHasOperator( pItem, HB_OO_OP_GREATEREQUAL ) )
+   {
+      hb_vmPushLong( lValue );
+      hb_objOperatorCall( HB_OO_OP_GREATEREQUAL, pItem, pItem,
+                          hb_stackItemFromTop( -1 ), NULL );
+      hb_stackPop();
+      return hb_xvmPopLogical( pfValue );
+   }
+   else
+   {
+      PHB_ITEM pResult;
+
+      hb_vmPushLong( lValue );
+      pResult = hb_errRT_BASE_Subst( EG_ARG, 1074, NULL, "<=", 2, pItem, hb_stackItemFromTop( -1 ) );
+
+      if( pResult )
+      {
+         hb_stackPop();
+         hb_itemMove( pItem, pResult );
+         hb_itemRelease( pResult );
+         return hb_xvmPopLogical( pfValue );
+      }
+   }
 
    HB_XVM_RETURN
 }
