@@ -1,6 +1,18 @@
 #!/bin/sh
-# Create drydock binary name symlinks alongside the harbour-named originals.
-# Run after `make` to add the new names.
+# Create legacy compatibility symlinks after a Make build.
+# Make produces the old Harbour names (harbour, hbmk2, etc.).
+# This script renames them to Drydock names and creates legacy symlinks.
+#
+# After running:
+#   drydock   (real binary, renamed from harbour)
+#   harbour   (legacy symlink → drydock)
+#   ddmake    (real binary, renamed from hbmk2)
+#   hbmk2     (legacy symlink → ddmake)
+#   ...
+#
+# The zig build already produces Drydock names directly.
+# This script is only needed for the legacy Make build.
+#
 # Usage: bin/create-symlinks.sh [bin_dir]
 
 BIN_DIR="${1:-bin/linux/gcc}"
@@ -10,20 +22,23 @@ if [ ! -d "$BIN_DIR" ]; then
     exit 1
 fi
 
-# Create symlinks: new name → old name
-create_link() {
+# Rename real binary to new name, create legacy symlink with old name
+rename_binary() {
     local old="$1" new="$2"
-    if [ -f "$BIN_DIR/$old" ] && [ ! -e "$BIN_DIR/$new" ]; then
-        ln -s "$old" "$BIN_DIR/$new"
-        echo "  $new -> $old"
+    if [ -f "$BIN_DIR/$old" ] && [ ! -L "$BIN_DIR/$old" ]; then
+        mv "$BIN_DIR/$old" "$BIN_DIR/$new"
+        ln -sf "$new" "$BIN_DIR/$old"
+        echo "  $old -> $new (renamed + legacy symlink)"
+    elif [ -L "$BIN_DIR/$old" ] && [ -f "$BIN_DIR/$new" ]; then
+        echo "  $new (already renamed)"
     fi
 }
 
-echo "Creating Drydock symlinks in $BIN_DIR:"
-create_link harbour    drydock
-create_link hbmk2      ddmake
-create_link hbtest     ddtest
-create_link hbrun      ddrun
-create_link hbpp       ddpp
-create_link hbi18n     ddi18n
-create_link hbformat   ddformat
+echo "Renaming Make binaries to Drydock names in $BIN_DIR:"
+rename_binary harbour    drydock
+rename_binary hbmk2      ddmake
+rename_binary hbtest     ddtest
+rename_binary hbrun      ddrun
+rename_binary hbpp       ddpp
+rename_binary hbi18n     ddi18n
+rename_binary hbformat   ddformat

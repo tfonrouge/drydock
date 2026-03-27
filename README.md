@@ -50,7 +50,9 @@ Drydock renames the user-facing binaries from the upstream Harbour names:
 | `ddi18n` | `hbi18n` | i18n tool |
 
 Internal APIs (`hb_*`), libraries (`libhb*.a`), and file formats (`.hrb`,
-`.hbp`, `.hbc`) retain the `hb` prefix for backward compatibility.
+`.hbp`, `.hbc`) retain the `hb` prefix for backward compatibility. The old
+Harbour binary names (`harbour`, `hbmk2`, etc.) remain available as legacy
+symlinks.
 
 ## Project Documents
 
