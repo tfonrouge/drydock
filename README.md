@@ -58,8 +58,9 @@ symlinks.
 
 | Document | Purpose |
 |----------|---------|
-| [doc/drydock.md](doc/drydock.md) | Vision, workstreams, compatibility covenant |
-| [doc/drydock-analysis.md](doc/drydock-analysis.md) | Technical deep dive and code analysis |
+| [doc/drydock/vision.md](doc/drydock/vision.md) | Vision, workstreams, compatibility covenant |
+| [doc/drydock/analysis.md](doc/drydock/analysis.md) | Technical deep dive and code analysis |
+| [doc/drydock/oo-spec.md](doc/drydock/oo-spec.md) | OO system specification — current state, gaps, target, protocols |
 | [blueprints/INDEX.md](blueprints/INDEX.md) | Workstream status board |
 | [blueprints/MAP.md](blueprints/MAP.md) | Dependency graph and sprint focus |
 | [CLAUDE.md](CLAUDE.md) | Guidance for Claude Code when working in this repo |
@@ -81,7 +82,7 @@ current sprint focus.
 
 99.5% source compatibility with existing Clipper/Harbour code. All breaks
 documented, non-silent, and discoverable at compile time. See
-[doc/drydock.md](doc/drydock.md) for the compatibility covenant.
+[doc/drydock/vision.md](doc/drydock/vision.md) for the compatibility covenant.
 
 ## Code Formatting
 

@@ -2,7 +2,7 @@
 **Updated**: 2026-03-27
 **North Star**: Make Harbour a modern compiler — unify scalar types through OO dispatch, build a real type-checked compilation pipeline with persistent AST, unlock hardware-level performance, and replace the 26,793-line build system with a single `build.zig`.
 
-**Analysis**: [Compiler assessment](../doc/drydock-compiler-assessment.md) · [Build system assessment](../doc/drydock-build-assessment.md)
+**Analysis**: [Compiler assessment](../doc/drydock/compiler-assessment.md) · [Build system assessment](../doc/drydock/build-assessment.md)
 
 ---
 

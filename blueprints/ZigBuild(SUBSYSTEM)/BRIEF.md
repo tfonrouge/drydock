@@ -46,7 +46,7 @@ Replace the entire GNU Make + hbmk2 build system with `zig cc` (universal
 C compiler) + a single `build.zig` file (~500 lines). This is a **54:1
 reduction** in build system code.
 
-See `doc/drydock-build-assessment.md` for the full analysis.
+See `doc/drydock/build-assessment.md` for the full analysis.
 
 ---
 

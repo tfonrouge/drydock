@@ -10,7 +10,7 @@ the **Drydock** modernization initiative. Upstream: `https://github.com/harbour/
 Harbour is a multi-platform, multi-threading, object-oriented compiler and runtime
 for the xBase/Clipper language family. It compiles `.prg` source files to pcode
 (bytecode), then generates C code that links against the Harbour VM and runtime
-libraries. See `doc/drydock.md` for the modernization plan.
+libraries. See `doc/drydock/vision.md` for the modernization plan.
 
 ## Build Commands
 
@@ -118,9 +118,10 @@ Each operator (e.g., `hb_vmPlus()` in `hvm.c`) is a cascade of type checks: inte
 
 | Document | Purpose |
 |----------|---------|
-| `README.md` | Upstream build instructions and platform matrix (not Drydock-specific) |
-| `doc/drydock.md` | Drydock vision, workstreams, compatibility covenant |
-| `doc/drydock-analysis.md` | Technical deep dive, code analysis, fracture map |
+| `README.md` | Project overview, quick start, binary names |
+| `doc/drydock/vision.md` | Drydock vision, workstreams, compatibility covenant |
+| `doc/drydock/analysis.md` | Technical deep dive, code analysis, fracture map |
+| `doc/drydock/oo-spec.md` | OO system spec — current features, gaps, target state, universal protocols |
 | `doc/codestyl.txt` | Full C coding standards (summarized below) |
 | `doc/vm.txt` | VM architecture reference |
 | `doc/pcode.txt` | Pcode bytecode model |
