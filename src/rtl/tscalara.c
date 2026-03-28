@@ -45,23 +45,10 @@
  */
 
 #include "hbapi.h"
-#include "hbvm.h"
 
-HB_FUNC_EXTERN( __HBARRAY );
-
+/* No-op: scalar classes are C-native in Drydock.
+ * This symbol exists only for ENABLE TYPE CLASS ALL backward compatibility.
+ */
 HB_FUNC( HBARRAY )
 {
-   HB_FUNC_EXEC( __HBARRAY );
-
-   if( hb_vmRequestQuery() == 0 )
-   {
-      PHB_ITEM pItem = hb_param( -1, HB_IT_ANY );
-
-      if( HB_IS_OBJECT( pItem ) )
-      {
-         hb_vmPushDynSym( hb_dynsymGetCase( "NEW" ) );
-         hb_vmPush( pItem );
-         hb_vmSend( 0 );
-      }
-   }
 }

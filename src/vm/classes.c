@@ -100,6 +100,7 @@
 #include "hbapierr.h"
 #include "hbapiitm.h"
 #include "hbdate.h"
+#include "hbapicdp.h"
 #include "hbvm.h"
 #include "hbthread.h"
 #include "hboo.ch"
@@ -227,6 +228,68 @@ HB_FUNC_STATIC( msgToString );
 HB_FUNC_STATIC( msgIsScalar );
 HB_FUNC_STATIC( msgIsNil );
 HB_FUNC_STATIC( msgValType );
+
+/* Scalar class methods — CHARACTER */
+HB_FUNC_STATIC( msgCharUpper );
+HB_FUNC_STATIC( msgCharLower );
+HB_FUNC_STATIC( msgCharTrim );
+HB_FUNC_STATIC( msgCharLTrim );
+HB_FUNC_STATIC( msgCharRTrim );
+HB_FUNC_STATIC( msgCharLeft );
+HB_FUNC_STATIC( msgCharRight );
+HB_FUNC_STATIC( msgCharSubStr );
+HB_FUNC_STATIC( msgCharAt );
+HB_FUNC_STATIC( msgCharLen );
+HB_FUNC_STATIC( msgCharEmpty );
+HB_FUNC_STATIC( msgCharReplicate );
+HB_FUNC_STATIC( msgCharSplit );
+HB_FUNC_STATIC( msgCharReverse );
+
+/* Scalar class methods — NUMERIC */
+HB_FUNC_STATIC( msgNumAbs );
+HB_FUNC_STATIC( msgNumInt );
+HB_FUNC_STATIC( msgNumRound );
+HB_FUNC_STATIC( msgNumStr );
+HB_FUNC_STATIC( msgNumMin );
+HB_FUNC_STATIC( msgNumMax );
+HB_FUNC_STATIC( msgNumEmpty );
+HB_FUNC_STATIC( msgNumBetween );
+
+/* Scalar class methods — DATE */
+HB_FUNC_STATIC( msgDateYear );
+HB_FUNC_STATIC( msgDateMonth );
+HB_FUNC_STATIC( msgDateDay );
+HB_FUNC_STATIC( msgDateDOW );
+HB_FUNC_STATIC( msgDateEmpty );
+HB_FUNC_STATIC( msgDateAddDays );
+HB_FUNC_STATIC( msgDateDiffDays );
+
+/* Scalar class methods — TIMESTAMP */
+HB_FUNC_STATIC( msgTSHour );
+HB_FUNC_STATIC( msgTSMinute );
+HB_FUNC_STATIC( msgTSSec );
+
+/* Scalar class methods — ARRAY */
+HB_FUNC_STATIC( msgArrayLen );
+HB_FUNC_STATIC( msgArrayEmpty );
+HB_FUNC_STATIC( msgArraySort );
+HB_FUNC_STATIC( msgArrayTail );
+HB_FUNC_STATIC( msgArrayEach );
+HB_FUNC_STATIC( msgArrayMap );
+HB_FUNC_STATIC( msgArrayFilter );
+HB_FUNC_STATIC( msgArrayAdd );
+
+/* Scalar class methods — HASH */
+HB_FUNC_STATIC( msgHashKeys );
+HB_FUNC_STATIC( msgHashValues );
+HB_FUNC_STATIC( msgHashLen );
+HB_FUNC_STATIC( msgHashEmpty );
+HB_FUNC_STATIC( msgHashHasKey );
+HB_FUNC_STATIC( msgHashDel );
+
+/* Scalar class methods — LOGICAL */
+HB_FUNC_STATIC( msgLogIsTrue );
+HB_FUNC_STATIC( msgLogToggle );
 
 static void hb_clsInitDrydockObject( void );
 static HB_USHORT hb_clsNew( const char * szClassName, HB_USHORT uiDatas,
@@ -1211,6 +1274,73 @@ static void hb_clsInitDrydockObject( void )
    s_uiPointerClass   = hb_clsNew( "POINTER",   0, pSuper, NULL, HB_FALSE );
 
    hb_itemRelease( pSuper );
+
+   /* Register scalar class methods — always available, no ENABLE TYPE CLASS ALL */
+
+   /* CHARACTER methods */
+   hb_clsAdd( s_uiCharacterClass, "UPPER",     HB_FUNCNAME( msgCharUpper ) );
+   hb_clsAdd( s_uiCharacterClass, "LOWER",     HB_FUNCNAME( msgCharLower ) );
+   hb_clsAdd( s_uiCharacterClass, "TRIM",      HB_FUNCNAME( msgCharTrim ) );
+   hb_clsAdd( s_uiCharacterClass, "LTRIM",     HB_FUNCNAME( msgCharLTrim ) );
+   hb_clsAdd( s_uiCharacterClass, "RTRIM",     HB_FUNCNAME( msgCharRTrim ) );
+   hb_clsAdd( s_uiCharacterClass, "LEFT",      HB_FUNCNAME( msgCharLeft ) );
+   hb_clsAdd( s_uiCharacterClass, "RIGHT",     HB_FUNCNAME( msgCharRight ) );
+   hb_clsAdd( s_uiCharacterClass, "SUBSTR",    HB_FUNCNAME( msgCharSubStr ) );
+   hb_clsAdd( s_uiCharacterClass, "AT",        HB_FUNCNAME( msgCharAt ) );
+   hb_clsAdd( s_uiCharacterClass, "LEN",       HB_FUNCNAME( msgCharLen ) );
+   hb_clsAdd( s_uiCharacterClass, "EMPTY",     HB_FUNCNAME( msgCharEmpty ) );
+   hb_clsAdd( s_uiCharacterClass, "REPLICATE", HB_FUNCNAME( msgCharReplicate ) );
+   hb_clsAdd( s_uiCharacterClass, "SPLIT",     HB_FUNCNAME( msgCharSplit ) );
+   hb_clsAdd( s_uiCharacterClass, "REVERSE",   HB_FUNCNAME( msgCharReverse ) );
+
+   /* NUMERIC methods */
+   hb_clsAdd( s_uiNumericClass, "ABS",     HB_FUNCNAME( msgNumAbs ) );
+   hb_clsAdd( s_uiNumericClass, "INT",     HB_FUNCNAME( msgNumInt ) );
+   hb_clsAdd( s_uiNumericClass, "ROUND",   HB_FUNCNAME( msgNumRound ) );
+   hb_clsAdd( s_uiNumericClass, "STR",     HB_FUNCNAME( msgNumStr ) );
+   hb_clsAdd( s_uiNumericClass, "MIN",     HB_FUNCNAME( msgNumMin ) );
+   hb_clsAdd( s_uiNumericClass, "MAX",     HB_FUNCNAME( msgNumMax ) );
+   hb_clsAdd( s_uiNumericClass, "EMPTY",   HB_FUNCNAME( msgNumEmpty ) );
+   hb_clsAdd( s_uiNumericClass, "BETWEEN", HB_FUNCNAME( msgNumBetween ) );
+
+   /* DATE methods */
+   hb_clsAdd( s_uiDateClass, "YEAR",     HB_FUNCNAME( msgDateYear ) );
+   hb_clsAdd( s_uiDateClass, "MONTH",    HB_FUNCNAME( msgDateMonth ) );
+   hb_clsAdd( s_uiDateClass, "DAY",      HB_FUNCNAME( msgDateDay ) );
+   hb_clsAdd( s_uiDateClass, "DOW",      HB_FUNCNAME( msgDateDOW ) );
+   hb_clsAdd( s_uiDateClass, "EMPTY",    HB_FUNCNAME( msgDateEmpty ) );
+   hb_clsAdd( s_uiDateClass, "ADDDAYS",  HB_FUNCNAME( msgDateAddDays ) );
+   hb_clsAdd( s_uiDateClass, "DIFFDAYS", HB_FUNCNAME( msgDateDiffDays ) );
+
+   /* TIMESTAMP methods (Year/Month/Day inherited from DrydockObject dispatch) */
+   hb_clsAdd( s_uiTimeStampClass, "YEAR",   HB_FUNCNAME( msgDateYear ) );
+   hb_clsAdd( s_uiTimeStampClass, "MONTH",  HB_FUNCNAME( msgDateMonth ) );
+   hb_clsAdd( s_uiTimeStampClass, "DAY",    HB_FUNCNAME( msgDateDay ) );
+   hb_clsAdd( s_uiTimeStampClass, "HOUR",   HB_FUNCNAME( msgTSHour ) );
+   hb_clsAdd( s_uiTimeStampClass, "MINUTE", HB_FUNCNAME( msgTSMinute ) );
+   hb_clsAdd( s_uiTimeStampClass, "SEC",    HB_FUNCNAME( msgTSSec ) );
+
+   /* ARRAY methods */
+   hb_clsAdd( s_uiArrayClass, "LEN",    HB_FUNCNAME( msgArrayLen ) );
+   hb_clsAdd( s_uiArrayClass, "EMPTY",  HB_FUNCNAME( msgArrayEmpty ) );
+   hb_clsAdd( s_uiArrayClass, "SORT",   HB_FUNCNAME( msgArraySort ) );
+   hb_clsAdd( s_uiArrayClass, "TAIL",   HB_FUNCNAME( msgArrayTail ) );
+   hb_clsAdd( s_uiArrayClass, "EACH",   HB_FUNCNAME( msgArrayEach ) );
+   hb_clsAdd( s_uiArrayClass, "MAP",    HB_FUNCNAME( msgArrayMap ) );
+   hb_clsAdd( s_uiArrayClass, "FILTER", HB_FUNCNAME( msgArrayFilter ) );
+   hb_clsAdd( s_uiArrayClass, "ADD",    HB_FUNCNAME( msgArrayAdd ) );
+
+   /* HASH methods */
+   hb_clsAdd( s_uiHashClass, "KEYS",   HB_FUNCNAME( msgHashKeys ) );
+   hb_clsAdd( s_uiHashClass, "VALUES", HB_FUNCNAME( msgHashValues ) );
+   hb_clsAdd( s_uiHashClass, "LEN",    HB_FUNCNAME( msgHashLen ) );
+   hb_clsAdd( s_uiHashClass, "EMPTY",  HB_FUNCNAME( msgHashEmpty ) );
+   hb_clsAdd( s_uiHashClass, "HASKEY", HB_FUNCNAME( msgHashHasKey ) );
+   hb_clsAdd( s_uiHashClass, "DEL",    HB_FUNCNAME( msgHashDel ) );
+
+   /* LOGICAL methods */
+   hb_clsAdd( s_uiLogicalClass, "ISTRUE", HB_FUNCNAME( msgLogIsTrue ) );
+   hb_clsAdd( s_uiLogicalClass, "TOGGLE", HB_FUNCNAME( msgLogToggle ) );
 }
 
 
@@ -1246,7 +1376,14 @@ void hb_clsDoInit( void )
          hb_vmPushNil();
          hb_vmProc( 0 );
          if( HB_IS_OBJECT( pReturn ) )
-            *( s_puiHandles[ i ] ) = pReturn->item.asArray.value->uiClass;
+         {
+            /* If the handle was already set by C init (DrydockObject),
+             * don't overwrite it — the C-created class has methods
+             * that the PRG stub may lack. [drydock]
+             */
+            if( *( s_puiHandles[ i ] ) == 0 )
+               *( s_puiHandles[ i ] ) = pReturn->item.asArray.value->uiClass;
+         }
       }
    }
 }
@@ -4563,6 +4700,586 @@ HB_FUNC_STATIC( msgValType )
 {
    HB_STACK_TLS_PRELOAD
    hb_retc( hb_itemTypeStr( hb_stackSelfItem() ) );
+}
+
+
+/* ================================================================
+ * Scalar class methods — always available, no ENABLE TYPE CLASS ALL
+ * Each is a thin C wrapper around existing RTL functions.
+ * ================================================================ */
+
+/* --- CHARACTER methods --- */
+
+HB_FUNC_STATIC( msgCharUpper )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   char * pszText = hb_cdpnDupUpper( hb_vmCDP(), hb_itemGetCPtr( pSelf ), &nLen );
+   hb_retclen_buffer( pszText, nLen );
+}
+
+HB_FUNC_STATIC( msgCharLower )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   char * pszText = hb_cdpnDupLower( hb_vmCDP(), hb_itemGetCPtr( pSelf ), &nLen );
+   hb_retclen_buffer( pszText, nLen );
+}
+
+HB_FUNC_STATIC( msgCharTrim )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   const char * szText = hb_strLTrim( hb_itemGetCPtr( pSelf ), &nLen );
+   nLen = hb_strRTrimLen( szText, nLen, HB_FALSE );
+   hb_retclen( szText, nLen );
+}
+
+HB_FUNC_STATIC( msgCharLTrim )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   const char * szText = hb_strLTrim( hb_itemGetCPtr( pSelf ), &nLen );
+   hb_retclen( szText, nLen );
+}
+
+HB_FUNC_STATIC( msgCharRTrim )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   nLen = hb_strRTrimLen( hb_itemGetCPtr( pSelf ), nLen, HB_FALSE );
+   hb_retclen( hb_itemGetCPtr( pSelf ), nLen );
+}
+
+HB_FUNC_STATIC( msgCharLeft )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_ISIZ nLen = hb_parns( 1 );
+   if( nLen > 0 )
+   {
+      HB_SIZE nSrc = hb_itemGetCLen( pSelf );
+      if( ( HB_SIZE ) nLen > nSrc )
+         nLen = ( HB_ISIZ ) nSrc;
+      hb_retclen( hb_itemGetCPtr( pSelf ), ( HB_SIZE ) nLen );
+   }
+   else
+      hb_retc_null();
+}
+
+HB_FUNC_STATIC( msgCharRight )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_ISIZ nLen = hb_parns( 1 );
+   if( nLen > 0 )
+   {
+      HB_SIZE nSrc = hb_itemGetCLen( pSelf );
+      if( ( HB_SIZE ) nLen > nSrc )
+         nLen = ( HB_ISIZ ) nSrc;
+      hb_retclen( hb_itemGetCPtr( pSelf ) + nSrc - ( HB_SIZE ) nLen,
+                  ( HB_SIZE ) nLen );
+   }
+   else
+      hb_retc_null();
+}
+
+HB_FUNC_STATIC( msgCharSubStr )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_ISIZ nFrom = hb_parns( 1 );
+   HB_SIZE nSrc = hb_itemGetCLen( pSelf );
+   HB_SIZE nLen;
+
+   if( nFrom > 0 )
+      nFrom--;
+   else if( nFrom < 0 )
+   {
+      nFrom += ( HB_ISIZ ) nSrc;
+      if( nFrom < 0 )
+         nFrom = 0;
+   }
+
+   nLen = nSrc - ( HB_SIZE ) nFrom;
+   if( HB_ISNUM( 2 ) )
+   {
+      HB_ISIZ nReq = hb_parns( 2 );
+      if( nReq >= 0 && ( HB_SIZE ) nReq < nLen )
+         nLen = ( HB_SIZE ) nReq;
+   }
+
+   if( nLen > 0 )
+      hb_retclen( hb_itemGetCPtr( pSelf ) + nFrom, nLen );
+   else
+      hb_retc_null();
+}
+
+HB_FUNC_STATIC( msgCharAt )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSearch = hb_param( 1, HB_IT_STRING );
+   if( pSearch )
+      hb_retns( hb_strAt( hb_itemGetCPtr( pSearch ), hb_itemGetCLen( pSearch ),
+                           hb_itemGetCPtr( pSelf ), hb_itemGetCLen( pSelf ) ) );
+   else
+      hb_retns( 0 );
+}
+
+HB_FUNC_STATIC( msgCharLen )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retns( hb_itemGetCLen( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgCharEmpty )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_itemGetCLen( hb_stackSelfItem() ) == 0 );
+}
+
+HB_FUNC_STATIC( msgCharReplicate )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_ISIZ nTimes = hb_parns( 1 );
+   if( nTimes > 0 )
+   {
+      HB_SIZE nSrc = hb_itemGetCLen( pSelf );
+      if( nSrc > 0 )
+      {
+         HB_SIZE nLen = nSrc * ( HB_SIZE ) nTimes;
+         char * pszResult = ( char * ) hb_xgrab( nLen + 1 );
+         const char * pszSrc = hb_itemGetCPtr( pSelf );
+         HB_SIZE n;
+         for( n = 0; n < ( HB_SIZE ) nTimes; n++ )
+            hb_xmemcpy( pszResult + n * nSrc, pszSrc, nSrc );
+         hb_retclen_buffer( pszResult, nLen );
+         return;
+      }
+   }
+   hb_retc_null();
+}
+
+HB_FUNC_STATIC( msgCharSplit )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   const char * szDelim = hb_parc( 1 );
+   const char * szText = hb_itemGetCPtr( pSelf );
+   HB_SIZE nTextLen = hb_itemGetCLen( pSelf );
+   HB_SIZE nDelimLen = szDelim ? hb_parclen( 1 ) : 0;
+   PHB_ITEM pArray = hb_itemArrayNew( 0 );
+   HB_SIZE nStart = 0;
+
+   if( nDelimLen == 0 )
+   {
+      szDelim = " ";
+      nDelimLen = 1;
+   }
+
+   while( nStart < nTextLen )
+   {
+      HB_SIZE nPos = hb_strAt( szDelim, nDelimLen,
+                                szText + nStart, nTextLen - nStart );
+      if( nPos > 0 )
+      {
+         hb_arrayAddForward( pArray,
+            hb_itemPutCL( hb_stackAllocItem(), szText + nStart, nPos - 1 ) );
+         hb_stackPop();
+         nStart += nPos - 1 + nDelimLen;
+      }
+      else
+      {
+         hb_arrayAddForward( pArray,
+            hb_itemPutCL( hb_stackAllocItem(), szText + nStart, nTextLen - nStart ) );
+         hb_stackPop();
+         break;
+      }
+   }
+   hb_itemReturnRelease( pArray );
+}
+
+HB_FUNC_STATIC( msgCharReverse )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_SIZE nLen = hb_itemGetCLen( pSelf );
+   if( nLen > 0 )
+   {
+      const char * pszSrc = hb_itemGetCPtr( pSelf );
+      char * pszResult = ( char * ) hb_xgrab( nLen + 1 );
+      HB_SIZE i;
+      for( i = 0; i < nLen; i++ )
+         pszResult[ i ] = pszSrc[ nLen - 1 - i ];
+      hb_retclen_buffer( pszResult, nLen );
+   }
+   else
+      hb_retc_null();
+}
+
+/* --- NUMERIC methods --- */
+
+HB_FUNC_STATIC( msgNumAbs )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   if( HB_IS_NUMINT( pSelf ) )
+   {
+      HB_MAXINT nVal = HB_ITEM_GET_NUMINTRAW( pSelf );
+      hb_retnint( nVal >= 0 ? nVal : -nVal );
+   }
+   else
+   {
+      double dVal = hb_itemGetND( pSelf );
+      int iWidth, iDec;
+      hb_itemGetNLen( pSelf, &iWidth, &iDec );
+      hb_retndlen( dVal >= 0.0 ? dVal : -dVal, 0, iDec );
+   }
+}
+
+HB_FUNC_STATIC( msgNumInt )
+{
+   HB_STACK_TLS_PRELOAD
+   double dVal = hb_itemGetND( hb_stackSelfItem() );
+   hb_retnlen( hb_numInt( dVal ), 0, 0 );
+}
+
+HB_FUNC_STATIC( msgNumRound )
+{
+   HB_STACK_TLS_PRELOAD
+   int iDec = hb_parnidef( 1, 0 );
+   hb_retndlen( hb_numRound( hb_itemGetND( hb_stackSelfItem() ), iDec ),
+                0, HB_MAX( iDec, 0 ) );
+}
+
+HB_FUNC_STATIC( msgNumStr )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   if( HB_ISNUM( 1 ) )
+   {
+      char * s = hb_itemStr( pSelf, hb_param( 1, HB_IT_NUMERIC ),
+                             hb_param( 2, HB_IT_NUMERIC ) );
+      if( s )
+      {
+         hb_retc( s );
+         hb_xfree( s );
+      }
+      else
+         hb_retc( "0" );
+   }
+   else
+   {
+      char * s = hb_itemStr( pSelf, NULL, NULL );
+      if( s )
+      {
+         HB_SIZE nLen = strlen( s );
+         hb_retc( hb_strLTrim( s, &nLen ) );
+         hb_xfree( s );
+      }
+      else
+         hb_retc( "0" );
+   }
+}
+
+HB_FUNC_STATIC( msgNumMin )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pOther = hb_param( 1, HB_IT_NUMERIC );
+   if( pOther )
+   {
+      double d1 = hb_itemGetND( pSelf );
+      double d2 = hb_itemGetND( pOther );
+      hb_itemReturn( d1 <= d2 ? pSelf : pOther );
+   }
+   else
+      hb_itemReturn( pSelf );
+}
+
+HB_FUNC_STATIC( msgNumMax )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pOther = hb_param( 1, HB_IT_NUMERIC );
+   if( pOther )
+   {
+      double d1 = hb_itemGetND( pSelf );
+      double d2 = hb_itemGetND( pOther );
+      hb_itemReturn( d1 >= d2 ? pSelf : pOther );
+   }
+   else
+      hb_itemReturn( pSelf );
+}
+
+HB_FUNC_STATIC( msgNumEmpty )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_itemGetND( hb_stackSelfItem() ) == 0.0 );
+}
+
+HB_FUNC_STATIC( msgNumBetween )
+{
+   HB_STACK_TLS_PRELOAD
+   double dVal = hb_itemGetND( hb_stackSelfItem() );
+   double dLow = hb_parnd( 1 );
+   double dHigh = hb_parnd( 2 );
+   hb_retl( dVal >= dLow && dVal <= dHigh );
+}
+
+/* --- DATE methods --- */
+
+HB_FUNC_STATIC( msgDateYear )
+{
+   HB_STACK_TLS_PRELOAD
+   int iYear, iMonth, iDay;
+   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_retni( iYear );
+}
+
+HB_FUNC_STATIC( msgDateMonth )
+{
+   HB_STACK_TLS_PRELOAD
+   int iYear, iMonth, iDay;
+   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_retni( iMonth );
+}
+
+HB_FUNC_STATIC( msgDateDay )
+{
+   HB_STACK_TLS_PRELOAD
+   int iYear, iMonth, iDay;
+   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_retni( iDay );
+}
+
+HB_FUNC_STATIC( msgDateDOW )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retni( hb_dateJulianDOW( hb_itemGetDL( hb_stackSelfItem() ) ) );
+}
+
+HB_FUNC_STATIC( msgDateEmpty )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_itemGetDL( hb_stackSelfItem() ) == 0 );
+}
+
+HB_FUNC_STATIC( msgDateAddDays )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retdl( hb_itemGetDL( hb_stackSelfItem() ) + hb_parnl( 1 ) );
+}
+
+HB_FUNC_STATIC( msgDateDiffDays )
+{
+   HB_STACK_TLS_PRELOAD
+   long lSelf = hb_itemGetDL( hb_stackSelfItem() );
+   PHB_ITEM pOther = hb_param( 1, HB_IT_DATE );
+   if( pOther )
+      hb_retnl( lSelf - hb_itemGetDL( pOther ) );
+   else
+      hb_retnl( 0 );
+}
+
+/* --- TIMESTAMP methods (Year/Month/Day reuse DATE implementations) --- */
+
+HB_FUNC_STATIC( msgTSHour )
+{
+   HB_STACK_TLS_PRELOAD
+   int iHour, iMinutes, iSeconds, iMSec;
+   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+                  &iHour, &iMinutes, &iSeconds, &iMSec );
+   hb_retni( iHour );
+}
+
+HB_FUNC_STATIC( msgTSMinute )
+{
+   HB_STACK_TLS_PRELOAD
+   int iHour, iMinutes, iSeconds, iMSec;
+   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+                  &iHour, &iMinutes, &iSeconds, &iMSec );
+   hb_retni( iMinutes );
+}
+
+HB_FUNC_STATIC( msgTSSec )
+{
+   HB_STACK_TLS_PRELOAD
+   int iHour, iMinutes, iSeconds, iMSec;
+   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+                  &iHour, &iMinutes, &iSeconds, &iMSec );
+   hb_retni( iSeconds );
+}
+
+/* --- ARRAY methods --- */
+
+HB_FUNC_STATIC( msgArrayLen )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retns( hb_arrayLen( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgArrayEmpty )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_arrayLen( hb_stackSelfItem() ) == 0 );
+}
+
+HB_FUNC_STATIC( msgArraySort )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   hb_arraySort( pSelf, NULL, NULL, pBlock );
+   hb_itemReturn( pSelf );
+}
+
+HB_FUNC_STATIC( msgArrayTail )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   hb_arrayLast( pSelf, hb_stackReturnItem() );
+}
+
+HB_FUNC_STATIC( msgArrayEach )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   if( pBlock )
+   {
+      HB_SIZE nLen = hb_arrayLen( pSelf );
+      HB_SIZE i;
+      for( i = 1; i <= nLen; i++ )
+      {
+         PHB_ITEM pItem = hb_arrayGetItemPtr( pSelf, i );
+         PHB_ITEM pIdx = hb_itemPutNS( hb_stackAllocItem(), i );
+         hb_vmEvalBlockV( pBlock, 2, pItem, pIdx );
+         hb_stackPop();
+      }
+   }
+   hb_itemReturn( pSelf );
+}
+
+HB_FUNC_STATIC( msgArrayMap )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pResult = hb_itemArrayNew( 0 );
+   if( pBlock )
+   {
+      HB_SIZE nLen = hb_arrayLen( pSelf );
+      HB_SIZE i;
+      for( i = 1; i <= nLen; i++ )
+      {
+         PHB_ITEM pMapped = hb_vmEvalBlockV( pBlock, 1,
+                                             hb_arrayGetItemPtr( pSelf, i ) );
+         hb_arrayAdd( pResult, pMapped );
+      }
+   }
+   hb_itemReturnRelease( pResult );
+}
+
+HB_FUNC_STATIC( msgArrayFilter )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pResult = hb_itemArrayNew( 0 );
+   if( pBlock )
+   {
+      HB_SIZE nLen = hb_arrayLen( pSelf );
+      HB_SIZE i;
+      for( i = 1; i <= nLen; i++ )
+      {
+         PHB_ITEM pItem = hb_arrayGetItemPtr( pSelf, i );
+         PHB_ITEM pRet = hb_vmEvalBlockV( pBlock, 1, pItem );
+         if( hb_itemGetL( pRet ) )
+            hb_arrayAdd( pResult, pItem );
+      }
+   }
+   hb_itemReturnRelease( pResult );
+}
+
+HB_FUNC_STATIC( msgArrayAdd )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pValue = hb_param( 1, HB_IT_ANY );
+   if( pValue )
+      hb_arrayAdd( pSelf, pValue );
+   hb_itemReturn( pSelf );
+}
+
+/* --- HASH methods --- */
+
+HB_FUNC_STATIC( msgHashKeys )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_itemReturnRelease( hb_hashGetKeys( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgHashValues )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_itemReturnRelease( hb_hashGetValues( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgHashLen )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retns( hb_hashLen( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgHashEmpty )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_hashLen( hb_stackSelfItem() ) == 0 );
+}
+
+HB_FUNC_STATIC( msgHashHasKey )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pKey = hb_param( 1, HB_IT_ANY );
+   if( pKey )
+   {
+      HB_SIZE nPos;
+      hb_retl( hb_hashScan( hb_stackSelfItem(), pKey, &nPos ) );
+   }
+   else
+      hb_retl( HB_FALSE );
+}
+
+HB_FUNC_STATIC( msgHashDel )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pKey = hb_param( 1, HB_IT_ANY );
+   if( pKey )
+      hb_hashDel( pSelf, pKey );
+   hb_itemReturn( pSelf );
+}
+
+/* --- LOGICAL methods --- */
+
+HB_FUNC_STATIC( msgLogIsTrue )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( hb_itemGetL( hb_stackSelfItem() ) );
+}
+
+HB_FUNC_STATIC( msgLogToggle )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( ! hb_itemGetL( hb_stackSelfItem() ) );
 }
 
 
