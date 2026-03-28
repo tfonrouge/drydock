@@ -98,12 +98,18 @@ HB_FUNC_STATIC( msgToString )
       char * s = hb_itemStr( pSelf, NULL, NULL );
       if( s )
       {
-         hb_retc( hb_strLTrim( s ) );
+         HB_SIZE nLen = strlen( s );
+         hb_retc( hb_strLTrim( s, &nLen ) );
          hb_xfree( s );
       }
+      else
+         hb_retc( "0" );
    }
    else if( HB_IS_DATE( pSelf ) )
-      hb_retc( hb_itemGetDS( pSelf, NULL ) ? hb_parc( -1 ) : "" );
+   {
+      char szDate[ 9 ];
+      hb_retc( hb_dateDecStr( szDate, pSelf->item.asDateTime.julian ) );
+   }
    else if( HB_IS_TIMESTAMP( pSelf ) )
    {
       char szBuf[ 24 ];
@@ -148,10 +154,7 @@ HB_FUNC_STATIC( msgIsNil )
 HB_FUNC_STATIC( msgValType )
 {
    HB_STACK_TLS_PRELOAD
-   char szType[ 2 ];
-   szType[ 0 ] = hb_itemTypeChar( hb_stackSelfItem() );
-   szType[ 1 ] = '\0';
-   hb_retc( szType );
+   hb_retc( hb_itemTypeStr( hb_stackSelfItem() ) );
 }
 
 HB_FUNC_STATIC( msgCompareTo )

@@ -99,6 +99,7 @@
 #include "hbstack.h"
 #include "hbapierr.h"
 #include "hbapiitm.h"
+#include "hbdate.h"
 #include "hbvm.h"
 #include "hbthread.h"
 #include "hboo.ch"
@@ -222,6 +223,15 @@ HB_FUNC_STATIC( msgNull );
 HB_FUNC_STATIC( msgClassH );
 HB_FUNC_STATIC( msgClassName );
 HB_FUNC_STATIC( msgClassSel );
+HB_FUNC_STATIC( msgToString );
+HB_FUNC_STATIC( msgIsScalar );
+HB_FUNC_STATIC( msgIsNil );
+HB_FUNC_STATIC( msgValType );
+
+static void hb_clsInitDrydockObject( void );
+static HB_USHORT hb_clsNew( const char * szClassName, HB_USHORT uiDatas,
+                             PHB_ITEM pSuperArray, PHB_SYMB pClassFunc,
+                             HB_BOOL fModuleFriendly );
 #if 0
 HB_FUNC_STATIC( msgClass );
 HB_FUNC_STATIC( msgClassParent );
@@ -302,6 +312,11 @@ static HB_SYMB s___msgName        = { "NAME",            {HB_FS_MESSAGE}, {HB_FU
 static HB_SYMB s___msgClsParent   = { "ISDERIVEDFROM",   {HB_FS_MESSAGE}, {HB_FUNCNAME( msgClassParent )},NULL };
 static HB_SYMB s___msgClass       = { "CLASS",           {HB_FS_MESSAGE}, {HB_FUNCNAME( msgClass )},      NULL };
 */
+static HB_SYMB s___msgToString    = { "TOSTRING",        {HB_FS_MESSAGE}, {HB_FUNCNAME( msgToString )},   NULL };
+static HB_SYMB s___msgIsScalar    = { "ISSCALAR",        {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsScalar )},   NULL };
+static HB_SYMB s___msgIsNil       = { "ISNIL",           {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsNil )},      NULL };
+static HB_SYMB s___msgValType     = { "VALTYPE",         {HB_FS_MESSAGE}, {HB_FUNCNAME( msgValType )},    NULL };
+
 static HB_SYMB s___msgKeys        = { "KEYS",            {HB_FS_MESSAGE}, {HB_FUNCNAME( msgNull )},       NULL };
 static HB_SYMB s___msgValues      = { "VALUES",          {HB_FS_MESSAGE}, {HB_FUNCNAME( msgNull )},       NULL };
 
@@ -337,6 +352,7 @@ static HB_USHORT s_uiSymbolClass    = 0;
 static HB_USHORT s_uiPointerClass   = 0;
 
 static HB_USHORT s_uiObjectClass    = 0;
+static HB_USHORT s_uiDrydockObjectClass = 0;
 
 /* --- */
 
@@ -1138,6 +1154,11 @@ void hb_clsInit( void )
    s___msgWithObjectPush.pDynSym = hb_dynsymGetCase( s___msgWithObjectPush.szName );
    s___msgWithObjectPop.pDynSym  = hb_dynsymGetCase( s___msgWithObjectPop.szName );
 
+   s___msgToString.pDynSym       = hb_dynsymGetCase( s___msgToString.szName );
+   s___msgIsScalar.pDynSym       = hb_dynsymGetCase( s___msgIsScalar.szName );
+   s___msgIsNil.pDynSym          = hb_dynsymGetCase( s___msgIsNil.szName );
+   s___msgValType.pDynSym        = hb_dynsymGetCase( s___msgValType.szName );
+
 
    s_uiClsSize = HB_CLASS_POOL_SIZE;
    s_uiClasses = 0;
@@ -1147,7 +1168,51 @@ void hb_clsInit( void )
 #if defined( HB_MT_VM )
    s_pClassMtx = hb_threadMutexCreate();
 #endif
+
+   /* Create DrydockObject root class — must come after pool allocation */
+   hb_clsInitDrydockObject();
 }
+
+
+/* Create DrydockObject — the universal root class.
+ * Every value in Drydock responds to these methods.
+ * Called once from hb_clsInit() after class pool allocation.
+ */
+static void hb_clsInitDrydockObject( void )
+{
+   PHB_ITEM pSuper;
+
+   /* Create DrydockObject root class with universal methods */
+   s_uiDrydockObjectClass = hb_clsCreate( 0, "DrydockObject" );
+   hb_clsAdd( s_uiDrydockObjectClass, "TOSTRING",  HB_FUNCNAME( msgToString ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "CLASSNAME", HB_FUNCNAME( msgClassName ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "CLASSH",    HB_FUNCNAME( msgClassH ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "ISSCALAR",  HB_FUNCNAME( msgIsScalar ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "ISNIL",     HB_FUNCNAME( msgIsNil ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "VALTYPE",   HB_FUNCNAME( msgValType ) );
+
+   /* Set as default parent for all user-defined classes */
+   s_uiObjectClass = s_uiDrydockObjectClass;
+
+   /* Create scalar classes inheriting from DrydockObject */
+   pSuper = hb_itemArrayNew( 1 );
+   hb_arraySetNI( pSuper, 1, s_uiDrydockObjectClass );
+
+   s_uiArrayClass     = hb_clsNew( "ARRAY",     0, pSuper, NULL, HB_FALSE );
+   s_uiBlockClass     = hb_clsNew( "BLOCK",     0, pSuper, NULL, HB_FALSE );
+   s_uiCharacterClass = hb_clsNew( "CHARACTER", 0, pSuper, NULL, HB_FALSE );
+   s_uiDateClass      = hb_clsNew( "DATE",      0, pSuper, NULL, HB_FALSE );
+   s_uiTimeStampClass = hb_clsNew( "TIMESTAMP", 0, pSuper, NULL, HB_FALSE );
+   s_uiHashClass      = hb_clsNew( "HASH",      0, pSuper, NULL, HB_FALSE );
+   s_uiLogicalClass   = hb_clsNew( "LOGICAL",   0, pSuper, NULL, HB_FALSE );
+   s_uiNilClass       = hb_clsNew( "NIL",       0, pSuper, NULL, HB_FALSE );
+   s_uiNumericClass   = hb_clsNew( "NUMERIC",   0, pSuper, NULL, HB_FALSE );
+   s_uiSymbolClass    = hb_clsNew( "SYMBOL",    0, pSuper, NULL, HB_FALSE );
+   s_uiPointerClass   = hb_clsNew( "POINTER",   0, pSuper, NULL, HB_FALSE );
+
+   hb_itemRelease( pSuper );
+}
+
 
 /* initialize Classy/OO system .prg functions */
 void hb_clsDoInit( void )
@@ -2198,6 +2263,18 @@ PHB_SYMB hb_objGetMethod( PHB_ITEM pObject, PHB_SYMB pMessage,
 
    else if( pMsg == s___msgClassSel.pDynSym )
       return &s___msgClassSel;
+
+   else if( pMsg == s___msgToString.pDynSym )
+      return &s___msgToString;
+
+   else if( pMsg == s___msgIsScalar.pDynSym )
+      return &s___msgIsScalar;
+
+   else if( pMsg == s___msgIsNil.pDynSym )
+      return &s___msgIsNil;
+
+   else if( pMsg == s___msgValType.pDynSym )
+      return &s___msgValType;
 
 /*
    else if( pMsg == s___msgClsParent.pDynSym )
@@ -4394,6 +4471,98 @@ HB_FUNC_STATIC( msgClassName )
       hb_retc( s_pClasses[ uiClass ]->szName );
    else
       hb_retc( hb_objGetClsName( hb_stackSelfItem() ) );
+}
+
+
+/* <cString> := <any>:ToString()
+ *
+ * Return human-readable string representation of any value.
+ * This is a built-in default message — works on ALL types.
+ */
+HB_FUNC_STATIC( msgToString )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+
+   if( HB_IS_STRING( pSelf ) )
+      hb_itemReturn( pSelf );
+   else if( HB_IS_NUMERIC( pSelf ) )
+   {
+      char * s = hb_itemStr( pSelf, NULL, NULL );
+      if( s )
+      {
+         HB_SIZE nLen = strlen( s );
+         hb_retc( hb_strLTrim( s, &nLen ) );
+         hb_xfree( s );
+      }
+      else
+         hb_retc( "0" );
+   }
+   else if( HB_IS_DATE( pSelf ) )
+   {
+      char szDate[ 9 ];
+      hb_retc( hb_dateDecStr( szDate, pSelf->item.asDateTime.julian ) );
+   }
+   else if( HB_IS_TIMESTAMP( pSelf ) )
+   {
+      char szBuf[ 24 ];
+      hb_retc( hb_timeStampStr( szBuf, pSelf->item.asDateTime.julian,
+                                        pSelf->item.asDateTime.time ) );
+   }
+   else if( HB_IS_LOGICAL( pSelf ) )
+      hb_retc( hb_itemGetL( pSelf ) ? ".T." : ".F." );
+   else if( HB_IS_NIL( pSelf ) )
+      hb_retc( "NIL" );
+   else if( HB_IS_ARRAY( pSelf ) )
+      hb_retc( "{ ... }" );
+   else if( HB_IS_HASH( pSelf ) )
+      hb_retc( "{ => }" );
+   else if( HB_IS_BLOCK( pSelf ) )
+      hb_retc( "{ || ... }" );
+   else if( HB_IS_SYMBOL( pSelf ) )
+   {
+      char szBuf[ HB_SYMBOL_NAME_LEN + 4 ];
+      hb_snprintf( szBuf, sizeof( szBuf ), "@%s()",
+                   pSelf->item.asSymbol.value->szName );
+      hb_retc( szBuf );
+   }
+   else if( HB_IS_POINTER( pSelf ) )
+      hb_retc( "<pointer>" );
+   else
+      hb_retc( hb_objGetClsName( pSelf ) );
+}
+
+
+/* <lScalar> := <any>:IsScalar()
+ *
+ * Return .T. for scalar types, .F. for user-defined objects.
+ */
+HB_FUNC_STATIC( msgIsScalar )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( ! HB_IS_OBJECT( hb_stackSelfItem() ) );
+}
+
+
+/* <lNil> := <any>:IsNil()
+ *
+ * Return .T. only for NIL values.
+ */
+HB_FUNC_STATIC( msgIsNil )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retl( HB_IS_NIL( hb_stackSelfItem() ) );
+}
+
+
+/* <cType> := <any>:ValType()
+ *
+ * Return single-character type code, same as ValType() function.
+ */
+HB_FUNC_STATIC( msgValType )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retc( hb_itemTypeStr( hb_stackSelfItem() ) );
 }
 
 

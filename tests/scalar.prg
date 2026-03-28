@@ -80,6 +80,28 @@ PROCEDURE MAIN()
    /* Split test */
    TEST( "Split",     "a,b,c":Split( "," ),  { "a", "b", "c" } )
 
+   /* DrydockObject universal methods (work on any value, no includes needed) */
+   TEST( "C toStr",   "hello":toString(),          "hello" )
+   TEST( "N toStr",   ( 42 ):toString(),            "42" )
+   TEST( "L toStr",   .T.:toString(),               ".T." )
+   TEST( "NIL toStr", NIL:toString(),               "NIL" )
+   TEST( "A toStr",   { 1, 2 }:toString(),          "{ ... }" )
+   TEST( "H toStr",   { "a" => 1 }:toString(),      "{ => }" )
+   TEST( "B toStr",   {|| NIL }:toString(),          "{ || ... }" )
+   TEST( "C isSc",    "hello":isScalar(),            .T. )
+   TEST( "N isSc",    ( 42 ):isScalar(),             .T. )
+   TEST( "NIL isSc",  NIL:isScalar(),                .T. )
+   TEST( "isNil T",   NIL:isNil(),                   .T. )
+   TEST( "isNil F",   "x":isNil(),                   .F. )
+   TEST( "C vType",   "hello":valType(),             "C" )
+   TEST( "N vType",   ( 42 ):valType(),              "N" )
+   TEST( "L vType",   .T.:valType(),                 "L" )
+   TEST( "D vType",   Date():valType(),              "D" )
+   TEST( "A vType",   {}:valType(),                  "A" )
+   TEST( "H vType",   { => }:valType(),              "H" )
+   TEST( "B vType",   {||NIL}:valType(),             "B" )
+   TEST( "NIL vType", NIL:valType(),                 "U" )
+
    ?
    ? "Passed:", s_nPass, "  Failed:", s_nFail, "  Total:", s_nPass + s_nFail
 

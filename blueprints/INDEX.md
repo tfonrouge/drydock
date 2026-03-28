@@ -19,7 +19,7 @@
 
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
-| A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :dart: FOCUSED | @tfonrouge | -- (new Tier 1 root) |
+| A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (new Tier 1 root) |
 | A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- (independent) |
 | B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | DrydockObject (for Phase 2+) |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
@@ -73,3 +73,4 @@
 | Binary rename | 2026-03-26 | harbour→drydock, hbmk2→ddmake, hbtest→ddtest, hbrun→ddrun, hbpp→ddpp, hbformat→ddformat |
 | ZigBuild Phase Z.3 | 2026-03-27 | Two-phase bootstrap: 115 `.prg` → `.c` via `captureStdOut`, ddtest links and runs |
 | ScalarClasses Phase 1 | 2026-03-27 | User-facing methods on all scalar types. 55 tests pass. `"hello":Upper()`, `(42):Abs()`, `{1,2,3}:Map()`, etc. |
+| DrydockObject | 2026-03-27 | Root class in C. `toString()`, `isScalar()`, `isNil()`, `valType()` on ANY value. 11 scalar classes always available. ddtest 4861/4861 pass. |

@@ -8,7 +8,7 @@
 | **Mode** | SUBSYSTEM |
 | **Tier** | 1 — Foundation (new root) |
 | **Component** | VM — `src/vm/classes.c`, `src/vm/hvm.c` |
-| **Status** | PLANNING |
+| **Status** | STABLE |
 
 ---
 
