@@ -11,7 +11,7 @@
  * on a non-Linux/GCC host.
  */
 
-#define HB_VER_REVID             2104281802
+#define HB_VER_REVID             2603281132
 #define HB_VER_CHLID             "0000000000"
 #define HB_VER_LENTRY            ""
 #define HB_PLATFORM              "linux"

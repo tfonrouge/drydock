@@ -49,14 +49,33 @@
 #ifndef HB_VER_H_
 #define HB_VER_H_
 
+/* Drydock product version — the version of the Drydock project itself.
+ * Follows semver: 0.x.y = pre-1.0, no stability guarantees for new features.
+ * Harbour compatibility is tracked separately below.
+ */
+#define DD_VER_MAJOR    0
+#define DD_VER_MINOR    0
+#define DD_VER_RELEASE  1
+#define DD_VER_STATUS   "dev"    /* Build status: "dev", "alpha1", "beta1", "rc1", "" (release) */
+
+#ifdef __DRYDOCK__
+   #undef __DRYDOCK__
+#endif
+#define __DRYDOCK__     0x000001 /* Three bytes: Major + Minor + Release */
+
+/* Harbour compatibility level — the upstream Harbour version this fork
+ * is based on. Kept unchanged so external code checking __HARBOUR__ for
+ * feature detection continues to work. Do NOT change these unless Drydock
+ * merges a newer Harbour upstream.
+ */
 #ifdef __HARBOUR__
    #undef __HARBOUR__
 #endif
 
-#define HB_VER_MAJOR    3        /* Major version number */
-#define HB_VER_MINOR    2        /* Minor version number */
-#define HB_VER_RELEASE  0        /* Release number */
-#define HB_VER_STATUS   "dev"    /* Build status (all lowercase) */
-#define __HARBOUR__     0x030200 /* Three bytes: Major + Minor + Release. This is recommented for 3rd party .c and .prg level code. */
+#define HB_VER_MAJOR    3        /* Harbour compat major */
+#define HB_VER_MINOR    2        /* Harbour compat minor */
+#define HB_VER_RELEASE  0        /* Harbour compat release */
+#define HB_VER_STATUS   DD_VER_STATUS  /* Alias — external code may reference this */
+#define __HARBOUR__     0x030200 /* For 3rd party .c and .prg level code */
 
 #endif /* HB_VER_H_ */

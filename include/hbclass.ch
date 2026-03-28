@@ -573,6 +573,40 @@ DECLARE HBClass ;
    ARRAY, BLOCK, CHARACTER, DATE, HASH, LOGICAL, NIL, NUMERIC, SYMBOL, TIMESTAMP, POINTER> => ;
       __clsAssocType( __clsInstSuper( @<ClassFuncName>() ), #<type> )
 
+/* Drydock: Extension methods — add methods to any existing class.
+ *
+ * Inline (code block — Self is first parameter):
+ *   EXTEND CLASS STRING WITH METHOD Upper ACTION {|Self| Upper( Self ) }
+ *   EXTEND CLASS NUMBER WITH METHOD Double ACTION {|Self| Self * 2 }
+ *
+ * Function reference (multi-line — Self available via stack):
+ *   EXTEND CLASS STRING WITH METHOD Reverse FUNCTION MyStringReverse
+ *
+ * Supports modern class name aliases:
+ *   STRING → CHARACTER, NUMBER → NUMERIC, BOOL → LOGICAL
+ *
+ * Typically called from an INIT PROCEDURE for load-time registration:
+ *   INIT PROCEDURE RegisterExtensions
+ *      EXTEND CLASS STRING WITH METHOD Upper ACTION {|Self| Upper( Self ) }
+ *      RETURN
+ */
+#xcommand EXTEND CLASS <!ClassName!> WITH METHOD <!MethodName!> ;
+          ACTION <block> => ;
+      __clsAddMsg( __clsFindByName( <(ClassName)> ), <(MethodName)>, ;
+                   <block>, HB_OO_MSG_INLINE )
+
+#xcommand EXTEND CLASS <!ClassName!> WITH METHOD <!MethodName!> ;
+          FUNCTION <!FuncName!> => ;
+      __clsAddMsg( __clsFindByName( <(ClassName)> ), <(MethodName)>, ;
+                   @<FuncName>(), HB_OO_MSG_METHOD )
+
+/* Drydock: ENABLE TYPE CLASS ALL is deprecated and should not be used.
+ * All scalar class methods (Upper, Abs, Len, Map, etc.) are built into
+ * the VM and always available without any includes or directives.
+ * These commands are kept ONLY for backward compatibility with external
+ * code (e.g., contrib/xhb) — they expand to no-op factory function
+ * REQUESTs that do not affect behavior. New code must not use them.
+ */
 #command ENABLE TYPE CLASS <type: ;
    ARRAY, BLOCK, CHARACTER, DATE, HASH, LOGICAL, NIL, NUMERIC, SYMBOL, TIMESTAMP, POINTER> ;
    [, <typeN: ;

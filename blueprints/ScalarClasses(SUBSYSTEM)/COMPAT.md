@@ -90,9 +90,9 @@ are inherently namespace-independent.
 `:isScalar()`, `:isNil()`, `:valType()` on any value. No includes or
 REQUEST statements needed.
 
-**For code using scalar class methods (Upper, etc.)**: Still use
-`ENABLE TYPE CLASS ALL` or `REQUEST HBCharacter` to pull in the rich methods.
-The base methods (toString, className) work without this.
+**For code using scalar class methods (Upper, etc.)**: All scalar methods
+are now built into the VM. `ENABLE TYPE CLASS ALL` is deprecated and no
+longer needed. Remove it from your code — methods work without it.
 
 ---
 

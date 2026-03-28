@@ -5,8 +5,6 @@
 
 #include "hbclass.ch"
 
-ENABLE TYPE CLASS ALL
-
 STATIC s_nPass := 0, s_nFail := 0
 
 PROCEDURE MAIN()
@@ -26,7 +24,7 @@ PROCEDURE MAIN()
    TEST( "At",        "hello":At( "ll" ),     3 )
    TEST( "Replicate", "ha":Replicate( 3 ),    "hahaha" )
    TEST( "Reverse",   "abc":Reverse(),        "cba" )
-   TEST( "AsString",  "hello":AsString(),     "hello" )
+   TEST( "toString",  "hello":toString(),     "hello" )
    TEST( "IsScalar",  "hello":IsScalar(),     .T. )
    TEST( "ClassName", "hello":ClassName(),    "CHARACTER" )
 
@@ -41,7 +39,7 @@ PROCEDURE MAIN()
    TEST( "Empty T",   ( 0 ):Empty(),           .T. )
    TEST( "Between T", ( 5 ):Between( 1, 10 ),  .T. )
    TEST( "Between F", ( 15 ):Between( 1, 10 ), .F. )
-   TEST( "N AsStr",   ( 42 ):AsString(),       "42" )
+   TEST( "N AsStr",   ( 42 ):toString(),       "42" )
    TEST( "N Class",   ( 42 ):ClassName(),      "NUMERIC" )
 
    /* Logical methods */
@@ -49,7 +47,7 @@ PROCEDURE MAIN()
    TEST( "IsTrue F",  .F.:IsTrue(),           .F. )
    TEST( "Toggle T",  .T.:Toggle(),           .F. )
    TEST( "Toggle F",  .F.:Toggle(),           .T. )
-   TEST( "L AsStr",   .T.:AsString(),         ".T." )
+   TEST( "L AsStr",   .T.:toString(),         ".T." )
    TEST( "L Class",   .T.:ClassName(),        "LOGICAL" )
 
    /* Date methods */

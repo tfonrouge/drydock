@@ -136,6 +136,18 @@ Each operator (e.g., `hb_vmPlus()` in `hvm.c`) is a cascade of type checks: inte
 - **Functions given resource pointers should NOT free them** unless that is the documented purpose.
 - **User-level C functions** use `HB_FUNC( FUNCNAME )` macro, uppercase names. Extensions to Clipper are prefixed `HB_`.
 
+## Versioning
+
+Drydock has its own version (`DD_VER_*`) separate from the Harbour compatibility
+level (`HB_VER_*`). Both are defined in `include/hbver.h`.
+
+- **Drydock version**: `DD_VER_MAJOR.DD_VER_MINOR.DD_VER_RELEASE` + `DD_VER_STATUS`
+- **Harbour compat**: `HB_VER_MAJOR.HB_VER_MINOR` — do NOT change unless merging upstream
+- **`__DRYDOCK__`**: macro for conditional compilation of Drydock-specific code
+- **`__HARBOUR__`**: kept at `0x030200` for external code feature detection
+- **Binaries**: all display "Drydock X.Y.Z (Harbour N.N compatible)"
+- **`ENABLE TYPE CLASS ALL`**: deprecated — all scalar methods are built into the VM
+
 ## Key Environment Variables
 
 | Variable | Purpose |

@@ -105,9 +105,9 @@ STATIC s_lDBFAvail := .F.
 PROCEDURE Main( cPar1, cPar2, cPar3 )
 
    OutStd( ;
-      "Harbour Compatibility and Regression Test Suite" + hb_eol() + ;
+      "Drydock Test Suite (Harbour compatible)" + hb_eol() + ;
       "Copyright (c) 1999-" + COPYRIGHT_YEAR + ", " + ;
-      "Viktor Szakats" + hb_eol() )
+      "https://github.com/tfonrouge/drydock" + hb_eol() )
 
    IF cPar1 == NIL
       cPar1 := ""
@@ -127,7 +127,7 @@ PROCEDURE Main( cPar1, cPar2, cPar3 )
       "--help" $ Lower( cPar1 )
 
       OutStd( hb_eol() + ;
-              "Syntax:  hbtest [options]" + hb_eol() + ;
+              "Syntax:  ddtest [options]" + hb_eol() + ;
               hb_eol() + ;
               "Options:  -h, -?        Display this help." + hb_eol() + ;
               "          -all          Display all tests, not only the failures." + hb_eol() + ;

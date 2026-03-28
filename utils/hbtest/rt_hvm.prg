@@ -204,12 +204,13 @@ PROCEDURE Main_HVM()
 #endif
 #endif
 #ifndef __XPP__
-   HBTEST "":classH()                     IS 0
-   HBTEST 0:classH()                      IS 0
-   HBTEST hb_SToD( "" ):classH()          IS 0
-   HBTEST .F.:classH()                    IS 0
-   HBTEST {|| NIL }:classH()              IS 0
-   HBTEST {}:classH()                     IS 0
+   /* Drydock: scalar values now have class handles (DrydockObject) */
+   HBTEST "":classH() > 0                 IS .T.
+   HBTEST 0:classH() > 0                  IS .T.
+   HBTEST hb_SToD( "" ):classH() > 0      IS .T.
+   HBTEST .F.:classH() > 0                IS .T.
+   HBTEST {|| NIL }:classH() > 0          IS .T.
+   HBTEST {}:classH() > 0                 IS .T.
 #endif
    HBTEST ErrorNew():classH() > 0         IS .T.
    HBTEST ErrorNew():classH > 0           IS .T.
@@ -237,12 +238,13 @@ PROCEDURE Main_HVM()
 #endif
 #endif
 #ifndef __XPP__
-   HBTEST scString:classH()               IS 0
-   HBTEST snIntP:classH()                 IS 0
-   HBTEST sdDateE:classH()                IS 0
-   HBTEST slFalse:classH()                IS 0
-   HBTEST sbBlock:classH()                IS 0
-   HBTEST saArray:classH()                IS 0
+   /* Drydock: scalar variables now have class handles (DrydockObject) */
+   HBTEST scString:classH() > 0           IS .T.
+   HBTEST snIntP:classH() > 0             IS .T.
+   HBTEST sdDateE:classH() > 0            IS .T.
+   HBTEST slFalse:classH() > 0            IS .T.
+   HBTEST sbBlock:classH() > 0            IS .T.
+   HBTEST saArray:classH() > 0            IS .T.
 #endif
    HBTEST soObject:classH() > 0           IS .T.
    HBTEST soObject:classH > 0             IS .T.

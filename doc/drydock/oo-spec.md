@@ -306,13 +306,13 @@ Every value in Drydock should support these methods, inherited from DrydockObjec
 | `isScalar()` | Logical | `.T.` for scalars, `.F.` for objects | No |
 | `isNil()` | Logical | `.T.` only for NIL | No |
 | `valType()` | String | Traditional type code ("C", "N", etc.) | No |
-| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable | Yes |
-| `isComparable()` | Logical | `.T.` for string, numeric, date, timestamp, logical | No |
 
 ### Extended Protocols (DrydockObject Phase 2, future)
 
 | Method | Returns | Default Behavior | Override? |
 |--------|---------|-----------------|-----------|
+| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable | Yes |
+| `isComparable()` | Logical | `.T.` for string, numeric, date, timestamp, logical | No |
 | `equals(other)` | Logical | Identity comparison (same reference) | Yes |
 | `hashCode()` | Numeric | Based on identity | Yes (must be consistent with equals) |
 | `clone()` | Same type | Shallow copy | Yes |
@@ -538,7 +538,7 @@ Externally, every value responds to messages.
 | Root class (DrydockObject) | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
 | toString / className / isScalar | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
 | Always-available scalar classes | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
-| compareTo / isComparable | [DrydockObject](../../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
+| compareTo / isComparable | DrydockObject Phase 2 | 1 | Planned |
 | equals / hashCode / clone | DrydockObject Phase 2 | 1 | Planned |
 | isProperty / isReadOnly reflection | DrydockObject Phase 2 | 1 | Planned |
 | dispose / WITH...END WITH | DrydockObject Phase 2 | 1 | Planned |

@@ -181,8 +181,8 @@ EXTERNAL hbmk_KEYW
 #define HB_SYMBOL_UNUSED( symbol )  ( ( symbol ) )
 #endif
 
-#define _SELF_NAME_             "hbmk2"
-#define _SELF_NAME_LONG_        "Harbour Make"
+#define _SELF_NAME_             "ddmake"
+#define _SELF_NAME_LONG_        "Drydock Make"
 
 #define I_( x )                 hb_UTF8ToStr( hb_i18n_gettext( x /*, _SELF_NAME_ */ ) )
 #define H_( x )                 I_( x )

@@ -64,7 +64,7 @@ HB_FUNC( HB_VERSION )
 {
    switch( hb_parni( 1 ) )
    {
-      case HB_VERSION_URL_BASE:       hb_retc_const( "https://github.com/harbour/core/" ); break;
+      case HB_VERSION_URL_BASE:       hb_retc_const( "https://github.com/tfonrouge/drydock" ); break;
       case HB_VERSION_URL_SOURCE:     hb_retc_null(); break;
       case HB_VERSION_HARBOUR:        hb_retc_buffer( hb_verHarbour() ); break;
       case HB_VERSION_COMPILER:       hb_retc_buffer( hb_verCompiler() ); break;

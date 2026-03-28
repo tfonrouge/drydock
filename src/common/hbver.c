@@ -1337,10 +1337,10 @@ char * hb_verHarbour( void )
 
    HB_TRACE( HB_TR_DEBUG, ( "hb_verHarbour()" ) );
 
-   pszVersion = ( char * ) hb_xgrab( 80 );
-   hb_snprintf( pszVersion, 80, "Drydock %d.%d.%d%s (Harbour compatible, r%d)",
-                HB_VER_MAJOR, HB_VER_MINOR, HB_VER_RELEASE, HB_VER_STATUS,
-                hb_verRevision() );
+   pszVersion = ( char * ) hb_xgrab( 120 );
+   hb_snprintf( pszVersion, 120, "Drydock %d.%d.%d%s (Harbour %d.%d compatible)",
+                DD_VER_MAJOR, DD_VER_MINOR, DD_VER_RELEASE, DD_VER_STATUS,
+                HB_VER_MAJOR, HB_VER_MINOR );
 
    return pszVersion;
 }

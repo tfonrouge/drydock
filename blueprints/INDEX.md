@@ -21,7 +21,7 @@
 |-------|------|------|--------|-------|------------|
 | A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (new Tier 1 root) |
 | A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- (independent) |
-| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | DrydockObject (done) |
+| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | DrydockObject (done) |
 | B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | @tfonrouge | ScalarClasses Phase 2 |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
 | D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm Phase 3 (branch hints) |
@@ -73,5 +73,6 @@
 | ZigBuild Phase Z.2 | 2026-03-26 | Full C build — 26 static libraries (vm, rtl, macro, rdd, codepage, lang, debug, pcre, zlib, GT drivers) in 5.5s |
 | Binary rename | 2026-03-26 | harbour→drydock, hbmk2→ddmake, hbtest→ddtest, hbrun→ddrun, hbpp→ddpp, hbformat→ddformat |
 | ZigBuild Phase Z.3 | 2026-03-27 | Two-phase bootstrap: 115 `.prg` → `.c` via `captureStdOut`, ddtest links and runs |
-| ScalarClasses Phase 1 | 2026-03-27 | User-facing methods on all scalar types. 55 tests pass. `"hello":Upper()`, `(42):Abs()`, `{1,2,3}:Map()`, etc. |
+| ScalarClasses Phase 1 | 2026-03-27 | User-facing methods on all scalar types. 75 tests pass. `"hello":Upper()`, `(42):Abs()`, `{1,2,3}:Map()`, etc. |
 | DrydockObject | 2026-03-27 | Root class in C. `toString()`, `isScalar()`, `isNil()`, `valType()` on ANY value. 11 scalar classes always available. ddtest 4861/4861 pass. |
+| ScalarClasses Phase 2 | 2026-03-28 | 60 methods in C (54 scalar + 6 universal) — ENABLE TYPE CLASS ALL deprecated. Operators: `{1,2}+{3,4}`, `"abc"*3`. tscalar.prg stripped to stubs. |

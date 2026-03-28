@@ -66,13 +66,14 @@ INIT/EXIT handling already exists in `hb_hrbInit()` (line 196-240) and
 
 ### 2.1 New .hrb v3 Format
 
+**Implemented (Phase H.1)**:
+
 ```
 Offset  Size    Field
 [0:4]   4       Signature: 0xC0 'H' 'R' 'B'
 [4:6]   2       Version: uint16 LE = 3
 [6:8]   2       Pcode version: uint16 LE (HB_PCODE_VER)
 [8:?]   var     Module name: null-terminated string (source file path)
-[?:?]   var     Declared namespace: null-terminated string (MODULE name, or "" if none)
 [?:?+4] 4       Symbol count: uint32 LE
 [?:?]   var     Symbol table:
                   name: null-terminated string
@@ -85,14 +86,16 @@ Offset  Size    Field
                   pcode: raw bytes
 ```
 
-Changes from v2:
+Changes from v2 (implemented in Phase H.1):
 - Version field: 2 → 3
 - Added: pcode version (2 bytes) after version field
 - Added: module name (null-terminated string) after pcode version
-- Added: declared namespace (null-terminated string) after module name — stores
-  the `MODULE` declaration name for ModuleSystem (Phase H); empty string if no
-  MODULE declaration. See [ModuleSystem DESIGN.md](../ModuleSystem(FEATURE)/DESIGN.md) §6.
 - Scope field: 1 byte → 2 bytes (uint16 LE)
+
+**Planned (Phase H.1b)** — will be inserted between module name and symbol count:
+- Declared namespace (null-terminated string) — stores the `MODULE` declaration
+  name for ModuleSystem (Phase H); empty string if no MODULE declaration.
+  See [ModuleSystem DESIGN.md](../ModuleSystem(FEATURE)/DESIGN.md) §6.
 
 ### 2.2 Writer Changes (`genhrb.c`)
 

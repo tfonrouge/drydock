@@ -7,7 +7,7 @@
 | **Name** | ScalarClasses |
 | **Mode** | SUBSYSTEM |
 | **Component** | VM — `src/vm/classes.c` |
-| **Status** | ACTIVE |
+| **Status** | STABLE |
 
 ## Motivation
 
@@ -49,7 +49,8 @@ function. No tscalar.prg required. No `ENABLE TYPE CLASS ALL` required.
 | LOGICAL | IsTrue, Toggle | Trivial C |
 | NIL, BLOCK, SYMBOL, POINTER | (minimal — toString covers it) | Already in DrydockObject |
 
-**~75 methods**, ~83% are thin C wrappers around existing RTL functions.
+**60 methods** (54 scalar + 6 DrydockObject universal), ~83% are thin C
+wrappers around existing RTL functions.
 
 ### Scalar Operators (cross-type, currently-erroring cases)
 
@@ -128,7 +129,7 @@ Scalar classes use existing APIs (`hb_clsAdd()`, `hb_clsNew()`).
 
 ## Estimated Scope
 
-- **Phase 1**: DONE — user-facing methods in tscalar.prg (55 tests)
+- **Phase 1**: DONE — user-facing methods in tscalar.prg (75 tests)
 - **Phase 1b**: DONE — DrydockObject root class + always-available scalar classes
 - **Phase 2** (5-7 days): Move all methods to C + add operators
 - **Phase 3** (2-3 days): Performance verification + cleanup + deprecation notes

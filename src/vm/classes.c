@@ -296,6 +296,9 @@ HB_FUNC_STATIC( msgArrayOpPlus );
 HB_FUNC_STATIC( msgHashOpPlus );
 HB_FUNC_STATIC( msgCharOpMult );
 
+/* Drydock API */
+HB_FUNC_EXTERN( __CLSFINDBYNAME );
+
 static void hb_clsInitDrydockObject( void );
 static HB_USHORT hb_clsNew( const char * szClassName, HB_USHORT uiDatas,
                              PHB_ITEM pSuperArray, PHB_SYMB pClassFunc,
@@ -1227,6 +1230,13 @@ void hb_clsInit( void )
    s___msgIsNil.pDynSym          = hb_dynsymGetCase( s___msgIsNil.szName );
    s___msgValType.pDynSym        = hb_dynsymGetCase( s___msgValType.szName );
 
+   /* Register Drydock class API functions as dynamic symbols so they
+    * are always discoverable — including from .hrb runtime. [drydock]
+    */
+   {
+      static HB_SYMB s_symClsFindByName = { "__CLSFINDBYNAME", {HB_FS_PUBLIC}, {HB_FUNCNAME( __CLSFINDBYNAME )}, NULL };
+      s_symClsFindByName.pDynSym = hb_dynsymNew( &s_symClsFindByName );
+   }
 
    s_uiClsSize = HB_CLASS_POOL_SIZE;
    s_uiClasses = 0;
@@ -4349,6 +4359,46 @@ HB_FUNC( __CLSCNTCLASSES )
 {
    HB_STACK_TLS_PRELOAD
    hb_retni( ( int ) s_uiClasses );
+}
+
+/* __clsFindByName( <cClassName> ) --> <nClassH> | 0
+ *
+ * Find a class handle by name. Supports modern aliases:
+ * STRING→CHARACTER, NUMBER→NUMERIC, BOOL→LOGICAL.
+ * Returns 0 if not found. [drydock]
+ */
+HB_FUNC( __CLSFINDBYNAME )
+{
+   HB_STACK_TLS_PRELOAD
+   const char * szName = hb_parc( 1 );
+
+   if( szName )
+   {
+      PHB_DYNS pDynSym;
+
+      /* Modern name aliases */
+      if( hb_stricmp( szName, "STRING" ) == 0 )
+         szName = "CHARACTER";
+      else if( hb_stricmp( szName, "NUMBER" ) == 0 )
+         szName = "NUMERIC";
+      else if( hb_stricmp( szName, "BOOL" ) == 0 )
+         szName = "LOGICAL";
+
+      pDynSym = hb_dynsymFindName( szName );
+      if( pDynSym )
+      {
+         HB_USHORT ui;
+         for( ui = 1; ui <= s_uiClasses; ui++ )
+         {
+            if( s_pClasses[ ui ]->pClassSym == pDynSym )
+            {
+               hb_retni( ( int ) ui );
+               return;
+            }
+         }
+      }
+   }
+   hb_retni( 0 );
 }
 
 /* __cls_CntClsData( <hClass> ) --> <nCount>

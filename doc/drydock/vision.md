@@ -104,6 +104,30 @@ percentages, see [drydock-analysis.md](drydock-analysis.md#compatibility-fractur
 
 ---
 
+## Versioning
+
+Drydock uses its own version number, separate from the Harbour compatibility
+level it was forked from.
+
+**Drydock version** (`DD_VER_*` in `include/hbver.h`): `0.0.1-dev`
+
+Minor version = tier completion. Patch version = individual blueprint shipped.
+- `0.0.x` — Tier 1 in progress (foundation work: DrydockObject, ScalarClasses, etc.)
+- `0.1.0` — Tier 1 complete (every value is an object, extension methods, reflection)
+- `0.2.0` — Tier 2 complete (real compiler: types, modules, LSP, optimizer)
+- `1.0.0` — Tier 3 complete + API freeze (performance, parallelism, production ready)
+
+All user-facing binaries display "Drydock X.Y.Z (Harbour N.N compatible)".
+
+**Harbour compatibility level** (`HB_VER_*`, `__HARBOUR__`): `3.2.0`
+- Preserved unchanged from the upstream fork point
+- External code checking `__HARBOUR__` for feature detection continues to work
+
+**`__DRYDOCK__` macro** (`0x000001`): available for conditional compilation of
+Drydock-specific features in PRG and C code.
+
+---
+
 ## Key Files Affected
 
 | File | Changes |

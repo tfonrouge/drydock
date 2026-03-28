@@ -8,7 +8,7 @@
 | **Mode** | FEATURE |
 | **Tier** | 0 — Build Infrastructure |
 | **Component** | Compiler — `src/compiler/genhrb.c`, VM — `src/vm/runner.c`, CLI — `src/main/` |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 
@@ -77,16 +77,23 @@ Binary format from `src/compiler/genhrb.c` (171 lines):
 
 ### Phase H.1: Fix `.hrb` Format (3 days)
 
-Bump `.hrb` version from 2 to 3. Add:
+Bump `.hrb` version from 2 to 3.
 
-| Field | Size | Purpose |
-|-------|------|---------|
-| Scope (full) | 2 bytes (uint16) | Fix truncation — store complete `HB_FS_*` flags |
-| INIT/EXIT flags | 1 byte per symbol | Mark INIT/EXIT procedures for auto-execution on load |
-| Module name | null-terminated string | Source file path for debugging |
-| Declared namespace | null-terminated string | `MODULE` declaration name, or `""` if none (for ModuleSystem) |
-| Pcode version | 2 bytes (uint16) | `HB_PCODE_VER` for compatibility checking |
-| Compiler version | null-terminated string | Build provenance |
+**Implemented** (2026-03-26):
+
+| Field | Size | Purpose | Status |
+|-------|------|---------|--------|
+| Scope (full) | 2 bytes (uint16) | Fix truncation — store complete `HB_FS_*` flags | Done |
+| Module name | null-terminated string | Source file path for debugging | Done |
+| Pcode version | 2 bytes (uint16) | `HB_PCODE_VER` for compatibility checking | Done |
+
+**Planned** (Phase H.1b):
+
+| Field | Size | Purpose | Status |
+|-------|------|---------|--------|
+| Declared namespace | null-terminated string | `MODULE` declaration name, or `""` if none (for ModuleSystem) | Planned |
+| INIT/EXIT flags | 1 byte per symbol | Mark INIT/EXIT procedures for auto-execution on load | Planned |
+| Compiler version | null-terminated string | Build provenance | Planned |
 
 **Backward compatibility**: `runner.c` already checks the version field.
 Version 2 files continue to load with the existing truncation workaround.

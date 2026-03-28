@@ -8,7 +8,7 @@
 | **Mode** | SUBSYSTEM |
 | **Tier** | 0 — Build Infrastructure |
 | **Component** | Build system — `config/`, `Makefile`, `utils/hbmk2/` |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 
