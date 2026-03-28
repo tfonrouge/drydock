@@ -69,10 +69,12 @@ class at any time via `hb_clsAddMsg()` (classes are not locked by default).
 
 ```c
 /* Near line 296 in classes.c */
-static HB_SYMB s___msgToString  = { "TOSTRING",  {HB_FS_MESSAGE}, {HB_FUNCNAME( msgToString )}, NULL };
-static HB_SYMB s___msgIsScalar  = { "ISSCALAR",  {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsScalar )}, NULL };
-static HB_SYMB s___msgIsNil     = { "ISNIL",     {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsNil )},    NULL };
-static HB_SYMB s___msgValType   = { "VALTYPE",   {HB_FS_MESSAGE}, {HB_FUNCNAME( msgValType )},  NULL };
+static HB_SYMB s___msgToString    = { "TOSTRING",     {HB_FS_MESSAGE}, {HB_FUNCNAME( msgToString )},    NULL };
+static HB_SYMB s___msgIsScalar    = { "ISSCALAR",     {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsScalar )},    NULL };
+static HB_SYMB s___msgIsNil       = { "ISNIL",        {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsNil )},       NULL };
+static HB_SYMB s___msgValType     = { "VALTYPE",      {HB_FS_MESSAGE}, {HB_FUNCNAME( msgValType )},     NULL };
+static HB_SYMB s___msgCompareTo   = { "COMPARETO",    {HB_FS_MESSAGE}, {HB_FUNCNAME( msgCompareTo )},   NULL };
+static HB_SYMB s___msgIsComparable= { "ISCOMPARABLE", {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsComparable )},NULL };
 ```
 
 ### 2.2 New Static Variable
@@ -151,6 +153,67 @@ HB_FUNC_STATIC( msgValType )
    szType[ 1 ] = '\0';
    hb_retc( szType );
 }
+
+HB_FUNC_STATIC( msgCompareTo )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pOther = hb_param( 1, HB_IT_ANY );
+
+   if( pOther == NULL )
+   {
+      hb_retni( 0 );
+      return;
+   }
+
+   if( HB_IS_NUMERIC( pSelf ) && HB_IS_NUMERIC( pOther ) )
+   {
+      double d1 = hb_itemGetND( pSelf );
+      double d2 = hb_itemGetND( pOther );
+      hb_retni( d1 < d2 ? -1 : ( d1 > d2 ? 1 : 0 ) );
+   }
+   else if( HB_IS_STRING( pSelf ) && HB_IS_STRING( pOther ) )
+   {
+      int i = hb_itemStrCmp( pSelf, pOther, HB_TRUE );
+      hb_retni( i < 0 ? -1 : ( i > 0 ? 1 : 0 ) );
+   }
+   else if( HB_IS_DATE( pSelf ) && HB_IS_DATE( pOther ) )
+   {
+      long l1 = pSelf->item.asDateTime.julian;
+      long l2 = pOther->item.asDateTime.julian;
+      hb_retni( l1 < l2 ? -1 : ( l1 > l2 ? 1 : 0 ) );
+   }
+   else if( HB_IS_TIMESTAMP( pSelf ) && HB_IS_TIMESTAMP( pOther ) )
+   {
+      long j1 = pSelf->item.asDateTime.julian;
+      long j2 = pOther->item.asDateTime.julian;
+      if( j1 != j2 )
+         hb_retni( j1 < j2 ? -1 : 1 );
+      else
+      {
+         long t1 = pSelf->item.asDateTime.time;
+         long t2 = pOther->item.asDateTime.time;
+         hb_retni( t1 < t2 ? -1 : ( t1 > t2 ? 1 : 0 ) );
+      }
+   }
+   else if( HB_IS_LOGICAL( pSelf ) && HB_IS_LOGICAL( pOther ) )
+   {
+      HB_BOOL l1 = hb_itemGetL( pSelf );
+      HB_BOOL l2 = hb_itemGetL( pOther );
+      hb_retni( l1 == l2 ? 0 : ( l1 ? 1 : -1 ) );
+   }
+   else
+      hb_ret(); /* NIL — types are not comparable */
+}
+
+HB_FUNC_STATIC( msgIsComparable )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   hb_retl( HB_IS_NUMERIC( pSelf ) || HB_IS_STRING( pSelf ) ||
+            HB_IS_DATE( pSelf ) || HB_IS_TIMESTAMP( pSelf ) ||
+            HB_IS_LOGICAL( pSelf ) );
+}
 ```
 
 ### 2.4 Initialization Sequence
@@ -169,19 +232,23 @@ static void hb_clsInitDrydockObject( void )
    PHB_ITEM pSuper;
 
    /* Register dynsyms for new built-in messages */
-   s___msgToString.pDynSym = hb_dynsymGetCase( s___msgToString.szName );
-   s___msgIsScalar.pDynSym = hb_dynsymGetCase( s___msgIsScalar.szName );
-   s___msgIsNil.pDynSym    = hb_dynsymGetCase( s___msgIsNil.szName );
-   s___msgValType.pDynSym  = hb_dynsymGetCase( s___msgValType.szName );
+   s___msgToString.pDynSym    = hb_dynsymGetCase( s___msgToString.szName );
+   s___msgIsScalar.pDynSym    = hb_dynsymGetCase( s___msgIsScalar.szName );
+   s___msgIsNil.pDynSym       = hb_dynsymGetCase( s___msgIsNil.szName );
+   s___msgValType.pDynSym     = hb_dynsymGetCase( s___msgValType.szName );
+   s___msgCompareTo.pDynSym   = hb_dynsymGetCase( s___msgCompareTo.szName );
+   s___msgIsComparable.pDynSym= hb_dynsymGetCase( s___msgIsComparable.szName );
 
    /* Create root class with universal methods */
    s_uiDrydockObjectClass = hb_clsCreate( 0, "DrydockObject" );
-   hb_clsAdd( s_uiDrydockObjectClass, "TOSTRING",  HB_FUNCNAME( msgToString ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "CLASSNAME", HB_FUNCNAME( msgClassName ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "CLASSH",    HB_FUNCNAME( msgClassH ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "ISSCALAR",  HB_FUNCNAME( msgIsScalar ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "ISNIL",     HB_FUNCNAME( msgIsNil ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "VALTYPE",   HB_FUNCNAME( msgValType ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "TOSTRING",     HB_FUNCNAME( msgToString ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "CLASSNAME",    HB_FUNCNAME( msgClassName ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "CLASSH",       HB_FUNCNAME( msgClassH ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "ISSCALAR",     HB_FUNCNAME( msgIsScalar ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "ISNIL",        HB_FUNCNAME( msgIsNil ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "VALTYPE",      HB_FUNCNAME( msgValType ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "COMPARETO",    HB_FUNCNAME( msgCompareTo ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "ISCOMPARABLE", HB_FUNCNAME( msgIsComparable ) );
 
    /* Set as default parent for all user classes */
    s_uiObjectClass = s_uiDrydockObjectClass;

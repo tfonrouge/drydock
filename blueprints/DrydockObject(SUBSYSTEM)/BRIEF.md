@@ -56,6 +56,8 @@ inherits from it — scalar classes, HBObject, and user-defined classes.
 | `isScalar()` | Logical | `.T.` for scalar types, `.F.` for user objects |
 | `isNil()` | Logical | `.T.` only for NIL values |
 | `valType()` | String | Traditional ValType() as a method ("C", "N", etc.) |
+| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable |
+| `isComparable()` | Logical | `.T.` for types that support ordering (string, numeric, date, logical) |
 
 ### Scalar Type Classes — Always Registered
 

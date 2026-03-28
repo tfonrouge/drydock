@@ -179,6 +179,89 @@ with method calls are performance-sensitive.
 
 **Resolution**: InlineCaching (Tier 3) — monomorphic/polymorphic caches at call sites
 
+### 2.11 Method/Property Ambiguity
+
+**Problem**: `obj:name` and `obj:name()` are syntactically identical — both are
+message sends. The caller cannot distinguish a cheap DATA read from an expensive
+METHOD computation. The `DATA name` declaration creates getter/setter method
+pairs (`NAME` / `_NAME`), but nothing distinguishes them from regular methods.
+Parentheses are optional on method calls, further blurring the line.
+
+**Impact**: Code readability suffers — the reader must know the class definition
+to understand whether `obj:count` is O(1) data access or O(n) computation.
+Serializers and debuggers can't distinguish stored vs computed values without
+class metadata. No property validation exists — `obj:age := -500` silently
+accepts invalid values.
+
+**Resolution** (phased):
+- DrydockObject Phase 2: `isProperty()`, `isReadOnly()` reflection methods
+- Tier 1: PROPERTY VALIDATE blocks for assignment constraints
+- Tier 1: Computed properties via `PROPERTY x GET expr SET expr`
+- Tier 2 (GradualTyping): AS type enforcement, optional strict parentheses warnings
+
+### 2.12 No Property Validation
+
+**Problem**: Instance variables declared with `DATA name AS CHARACTER` accept any
+type on assignment — the `AS type` annotation is decorative, never enforced. There
+is no built-in mechanism to validate property values on assignment.
+
+**Impact**: Data integrity relies entirely on developer discipline. Invalid states
+are silently accepted and propagate through the application until they cause a
+runtime error far from the source.
+
+**Resolution** (phased):
+- Tier 1: PROPERTY VALIDATE `{ |value| constraint }` blocks executed on assignment
+- Tier 2 (GradualTyping): AS type enforcement at compile time with optional runtime checks
+
+### 2.13 Function Parameters Are Untyped and Unchecked
+
+**Problem**: Harbour function parameters have no type enforcement, no count
+validation, no default values, no named parameter support, and no overloading.
+`AS type` annotations are decorative — never checked by compiler or runtime.
+Callers can pass too few arguments (silently NIL) or too many (silently ignored).
+Parameter names are lost in compiled output.
+
+```prg
+FUNCTION Calculate(a AS NUMERIC, b AS NUMERIC)
+   RETURN a + b
+
+Calculate("hello")          // No error — a="hello", b=NIL, crashes on +
+Calculate(1, 2, 3, 4, 5)    // No error — extras silently ignored
+```
+
+**Impact**: Functions are black boxes. The caller has no contract to follow.
+Bugs from wrong argument types or counts are discovered only at runtime. No IDE
+can provide meaningful autocomplete or validation. Every function must manually
+check for NIL to implement defaults.
+
+**Resolution** (Tier 2, requires PersistentAST + GradualTyping):
+- Default parameter values: `FUNCTION f(x, y := 10)`
+- Parameter type warnings: `AS NUMERIC` checked at compile time
+- Parameter count warnings: too few / too many arguments
+- Union types: `AS NUMERIC | CHARACTER` for multi-type parameters
+- Named parameters: `f(width: 100, height: 200)` via hash sugar
+- Parameter name preservation in AST for debugger/reflection
+
+### 2.14 No Function Overloading
+
+**Problem**: Harbour's symbol table maps each function name to a single function
+pointer. There is no mechanism for multiple functions with the same name but
+different parameter signatures. Developers use `SWITCH ValType()` inside a
+single function to handle different types.
+
+**Impact**: Common patterns like `Format(number)` vs `Format(date)` vs
+`Format(string)` require manual type dispatch. This is verbose, error-prone,
+and not discoverable by tools.
+
+**Resolution**: Function overloading is **not planned** for Drydock. The
+language's dynamic nature, single-entry symbol table, and macro/code-block
+system all assume one function per name. Instead, Drydock provides equivalent
+capability through:
+- Union types: `FUNCTION Format(x AS NUMERIC | CHARACTER | DATE)`
+- MATCH expression: type-aware pattern matching inside functions
+- Named parameters: solve the "too many positional args" problem
+- Default values: solve the "optional args" problem
+
 ---
 
 ## 3. Universal Protocols
@@ -194,6 +277,8 @@ Every value in Drydock should support these methods, inherited from DrydockObjec
 | `isScalar()` | Logical | `.T.` for scalars, `.F.` for objects | No |
 | `isNil()` | Logical | `.T.` only for NIL | No |
 | `valType()` | String | Traditional type code ("C", "N", etc.) | No |
+| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable | Yes |
+| `isComparable()` | Logical | `.T.` for string, numeric, date, timestamp, logical | No |
 
 ### Extended Protocols (DrydockObject Phase 2, future)
 
@@ -203,8 +288,9 @@ Every value in Drydock should support these methods, inherited from DrydockObjec
 | `hashCode()` | Numeric | Based on identity | Yes (must be consistent with equals) |
 | `clone()` | Same type | Shallow copy | Yes |
 | `deepClone()` | Same type | Recursive deep copy | Yes |
-| `compareTo(other)` | Numeric | -1, 0, or 1 based on ordering | Yes |
 | `dispose()` | NIL | Explicit resource cleanup | Yes |
+| `isProperty(cName)` | Logical | `.T.` if message is a DATA getter/setter | No |
+| `isReadOnly(cName)` | Logical | `.T.` if message is read-only (no setter) | No |
 
 ### Protocol Rules
 
@@ -241,6 +327,31 @@ CLASS MyApp
 ENDCLASS
 ```
 
+### Property Validation (Tier 1)
+```prg
+CLASS Person
+   PROPERTY name AS CHARACTER INIT "" VALIDATE { |v| ! Empty(v) }
+   PROPERTY age AS NUMERIC INIT 0 VALIDATE { |v| v >= 0 .AND. v <= 150 }
+
+   // Computed property (read-only)
+   PROPERTY fullName READONLY GET ::firstName + " " + ::lastName
+
+   // Computed property (read-write)
+   PROPERTY diameter GET ::radius * 2 SET ::radius := value / 2
+ENDCLASS
+
+o:name := ""       // Raises validation error
+o:age := -5        // Raises validation error
+? o:fullName       // Computed, read-only
+o:diameter := 10   // Sets radius to 5
+
+// Reflection
+? o:isProperty("name")      // .T. — stored DATA
+? o:isProperty("fullName")  // .T. — computed PROPERTY
+? o:isProperty("toString")  // .F. — regular METHOD
+? o:isReadOnly("fullName")  // .T. — no setter
+```
+
 ### Type-Safe Declarations (Tier 2)
 ```prg
 CLASS Account
@@ -249,6 +360,42 @@ CLASS Account
    METHOD deposit(amount AS NUMERIC) // Parameter type checked
 ENDCLASS
 ```
+
+### Function Parameters (Tier 2)
+```prg
+// Default parameter values
+FUNCTION Greet(cName AS CHARACTER, cGreeting AS CHARACTER := "Hello")
+   RETURN cGreeting + ", " + cName
+
+Greet("Juan")                 // cGreeting defaults to "Hello"
+Greet("Juan", "Hi")           // cGreeting = "Hi"
+
+// Parameter type warnings
+FUNCTION Calculate(a AS NUMERIC, b AS NUMERIC) AS NUMERIC
+   RETURN a + b
+
+Calculate("hello", 5)         // Compile-time WARNING: arg 1 expects NUMERIC
+
+// Parameter count warnings
+Calculate(1)                  // Warning: expects 2 arguments, got 1
+
+// Union types — function accepts multiple types
+FUNCTION Format(x AS NUMERIC | CHARACTER | DATE) AS CHARACTER
+   MATCH x:valType()
+      CASE "N" ; RETURN hb_ntos(x)
+      CASE "C" ; RETURN x
+      CASE "D" ; RETURN DToC(x)
+   ENDMATCH
+
+// Named parameters — desugars to hash construction
+CreateWindow(x: 100, y: 200, width: 400, height: 300, visible: .T.)
+// Equivalent to: CreateWindow({ "X" => 100, "Y" => 200, ... })
+```
+
+**Not planned**: Function overloading (multiple functions with same name but
+different signatures). Harbour's dynamic dispatch model assumes one function
+per name. Union types + MATCH provide equivalent capability without breaking
+the symbol table.
 
 ### Open Classes (Tier 1, ExtensionMethods)
 ```prg
@@ -272,6 +419,37 @@ CLASS Config IMPLEMENTS Serializable
    METHOD fromJSON(cJSON) ...
 ENDCLASS
 ```
+
+### Enum Classes (Tier 2)
+```prg
+ENUM CLASS Color
+   RED
+   GREEN
+   BLUE
+ENDENUM
+
+ENUM CLASS HttpStatus
+   OK          := 200
+   NOT_FOUND   := 404
+   SERVER_ERROR := 500
+
+   METHOD isSuccess() INLINE ::ordinal() >= 200 .AND. ::ordinal() < 300
+ENDENUM
+
+? Color.RED:toString()          // "RED"
+? Color.RED:ordinal()           // 0
+? HttpStatus.OK:isSuccess()     // .T.
+? HttpStatus.NOT_FOUND:value()  // 404
+
+// Type-safe: compiler warns if wrong enum type passed
+SetStatus( HttpStatus.OK )      // OK
+SetStatus( Color.RED )          // Compile-time warning
+```
+
+Enums are a closed set of named, typed singleton values. Each value is an
+instance of the enum class. Enums can have methods, custom values, and
+implement interfaces. Requires compiler support (ENUM CLASS syntax) and
+GradualTyping for type enforcement.
 
 ### Inline Caching (Tier 3)
 ```prg
@@ -331,15 +509,29 @@ Externally, every value responds to messages.
 | Root class (DrydockObject) | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
 | toString / className / isScalar | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
 | Always-available scalar classes | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
+| compareTo / isComparable | [DrydockObject](../../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
 | equals / hashCode / clone | DrydockObject Phase 2 | 1 | Planned |
+| isProperty / isReadOnly reflection | DrydockObject Phase 2 | 1 | Planned |
 | dispose / WITH...END WITH | DrydockObject Phase 2 | 1 | Planned |
 | User-facing scalar methods | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | Phase 1a done |
 | Operator routing via scalar classes | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | Phase 2 planned |
+| PROPERTY VALIDATE blocks | Standalone or hbclass.ch | 1 | Planned |
+| Computed properties (GET/SET) | Standalone or hbclass.ch | 1 | Planned |
 | EXTEND CLASS syntax | ExtensionMethods | 1 | Planned |
 | Runtime type introspection | Reflection | 1 | Planned |
 | Abstract classes / interfaces | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
 | Type declaration enforcement | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
 | Compile-time scope checking | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
+| Strict parentheses warnings | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
+| Default parameter values | PersistentAST + GradualTyping | 2 | Planned |
+| Parameter type warnings | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
+| Parameter count warnings | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
+| Union types (`AS N \| C \| D`) | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
+| Named parameters (`x: 100`) | PersistentAST (compiler sugar) | 2 | Planned |
+| MATCH / pattern matching | PersistentAST (compiler feature) | 2 | Planned |
+| Parameter name preservation | [PersistentAST](../blueprints/PersistentAST(SUBSYSTEM)/BRIEF.md) | 2 | Planned |
+| Enum classes (ENUM CLASS syntax) | GradualTyping or standalone | 2 | Planned |
+| Function overloading | **Not planned** | — | — |
 | CLASS METHOD implementation | Future | 2 | Planned |
 | Metaclass protocol | Future | 3 | Planned |
 | Inline caching | [InlineCaching](../blueprints/InlineCaching(FEATURE)/BRIEF.md) | 3 | Planned |
