@@ -60,6 +60,7 @@
 | Reflection | After DrydockObject (A0) | `__Methods()`, `__Data()` as DrydockObject methods |
 | EncodingStrings | After ScalarClasses (B) | UTF-8 per-string encoding field |
 | Traits/Mixins | After ExtensionMethods (B+) | `TRAIT`/`MIXIN` syntax with method copy |
+| BlockScoping | PersistentAST (E) | `LOCAL` inside IF/FOR/WHILE blocks; compile-time scope restriction |
 | DAP Debug Server | Independent | Debug Adapter Protocol as contrib module |
 | Conditional Breakpoints | Independent | Extend `HB_BREAKPOINT` |
 

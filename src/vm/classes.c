@@ -291,6 +291,11 @@ HB_FUNC_STATIC( msgHashDel );
 HB_FUNC_STATIC( msgLogIsTrue );
 HB_FUNC_STATIC( msgLogToggle );
 
+/* Scalar class operators */
+HB_FUNC_STATIC( msgArrayOpPlus );
+HB_FUNC_STATIC( msgHashOpPlus );
+HB_FUNC_STATIC( msgCharOpMult );
+
 static void hb_clsInitDrydockObject( void );
 static HB_USHORT hb_clsNew( const char * szClassName, HB_USHORT uiDatas,
                              PHB_ITEM pSuperArray, PHB_SYMB pClassFunc,
@@ -1341,6 +1346,11 @@ static void hb_clsInitDrydockObject( void )
    /* LOGICAL methods */
    hb_clsAdd( s_uiLogicalClass, "ISTRUE", HB_FUNCNAME( msgLogIsTrue ) );
    hb_clsAdd( s_uiLogicalClass, "TOGGLE", HB_FUNCNAME( msgLogToggle ) );
+
+   /* Scalar operators — cross-type operations that currently error */
+   hb_clsAdd( s_uiArrayClass,     "+", HB_FUNCNAME( msgArrayOpPlus ) );
+   hb_clsAdd( s_uiHashClass,      "+", HB_FUNCNAME( msgHashOpPlus ) );
+   hb_clsAdd( s_uiCharacterClass, "*", HB_FUNCNAME( msgCharOpMult ) );
 }
 
 
@@ -5280,6 +5290,91 @@ HB_FUNC_STATIC( msgLogToggle )
 {
    HB_STACK_TLS_PRELOAD
    hb_retl( ! hb_itemGetL( hb_stackSelfItem() ) );
+}
+
+
+/* ================================================================
+ * Scalar class operators — cross-type operations that currently error
+ * ================================================================ */
+
+/* {1,2} + {3,4} → {1,2,3,4}  (array concat)
+ * {1,2} + 3     → {1,2,3}    (element append)
+ */
+HB_FUNC_STATIC( msgArrayOpPlus )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pOther = hb_param( 1, HB_IT_ANY );
+
+   if( pOther )
+   {
+      HB_SIZE nLen = hb_arrayLen( pSelf );
+      PHB_ITEM pResult = hb_itemClone( pSelf );
+
+      if( HB_IS_ARRAY( pOther ) )
+      {
+         /* Array + Array → concatenation */
+         HB_SIZE nOther = hb_arrayLen( pOther );
+         HB_SIZE i;
+         hb_arraySize( pResult, nLen + nOther );
+         for( i = 1; i <= nOther; i++ )
+            hb_arraySet( pResult, nLen + i, hb_arrayGetItemPtr( pOther, i ) );
+      }
+      else
+      {
+         /* Array + scalar → append */
+         hb_arrayAdd( pResult, pOther );
+      }
+      hb_itemReturnRelease( pResult );
+   }
+   else
+      hb_itemReturn( pSelf );
+}
+
+/* {"a"=>1} + {"b"=>2} → {"a"=>1, "b"=>2}  (hash merge) */
+HB_FUNC_STATIC( msgHashOpPlus )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pOther = hb_param( 1, HB_IT_HASH );
+
+   if( pOther )
+   {
+      PHB_ITEM pResult = hb_itemClone( pSelf );
+      HB_SIZE nLen = hb_hashLen( pOther );
+      HB_SIZE i;
+      for( i = 1; i <= nLen; i++ )
+         hb_hashAdd( pResult, hb_hashGetKeyAt( pOther, i ),
+                              hb_hashGetValueAt( pOther, i ) );
+      hb_itemReturnRelease( pResult );
+   }
+   else
+      hb_itemReturn( pSelf );
+}
+
+/* "abc" * 3 → "abcabcabc"  (string repeat) */
+HB_FUNC_STATIC( msgCharOpMult )
+{
+   HB_STACK_TLS_PRELOAD
+   PHB_ITEM pSelf = hb_stackSelfItem();
+   HB_ISIZ nTimes = hb_parns( 1 );
+
+   if( nTimes > 0 )
+   {
+      HB_SIZE nSrc = hb_itemGetCLen( pSelf );
+      if( nSrc > 0 )
+      {
+         HB_SIZE nLen = nSrc * ( HB_SIZE ) nTimes;
+         char * pszResult = ( char * ) hb_xgrab( nLen + 1 );
+         const char * pszSrc = hb_itemGetCPtr( pSelf );
+         HB_SIZE n;
+         for( n = 0; n < ( HB_SIZE ) nTimes; n++ )
+            hb_xmemcpy( pszResult + n * nSrc, pszSrc, nSrc );
+         hb_retclen_buffer( pszResult, nLen );
+         return;
+      }
+   }
+   hb_retc_null();
 }
 
 
