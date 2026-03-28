@@ -1,12 +1,11 @@
 # IMPLEMENTATION_PLAN -- ScalarClasses (SUBSYSTEM)
 
-## Phase 1: User-Facing Methods + Public API (3-4 days)
+## Phase 1a: User-Facing Methods + Public API -- DONE (2026-03-27)
 
-- **Milestone**: `"hello":Upper()` works. `(42):Str()` works. `hb_objGetScalarClass()`
-  is exported. All existing scalar methods (AsString, ClassName, etc.) continue
-  to work. hbtest 4861/4861 passes.
+- **Milestone**: `"hello":Upper()` works (with ENABLE TYPE CLASS ALL).
+  55 tests pass. hbtest 4861/4861 passes.
 
-### Steps
+### Steps (all complete)
 
 - [ ] **S1.1** Add `hb_objGetScalarClass()` to `src/vm/classes.c` — thin wrapper
   over `hb_objGetClassH()`. Add declaration to `include/hbapicls.h`. Add export
@@ -40,6 +39,48 @@
 ### Rollback
 
 Revert tscalar.prg changes. Remove the 3-line C function. No other files affected.
+
+---
+
+## Phase 1b: DrydockObject Root Class + Always-Available Scalars (3-4 days)
+
+- **Milestone**: `"hello":toString()` works WITHOUT any includes, REQUEST, or
+  ENABLE TYPE CLASS ALL. All scalar types have classes registered in C during
+  VM init. User-defined classes inherit from DrydockObject by default.
+  hbtest 4861/4861 passes.
+
+### Steps
+
+- [ ] **S1b.1** Add `toString()` as a built-in default message in
+  `hb_objGetMethod()` (like CLASSNAME/CLASSH). Add symbol declaration,
+  register dynsym, implement `msgToString()` with type-switch cascade.
+  **Test**: `"hello":toString()` works without any class registration.
+- [ ] **S1b.2** Create `DrydockObject` root class in `hb_clsInit()` using
+  `hb_clsCreate(0, "DrydockObject")`. Add methods: toString, className,
+  isScalar, isNil, valType. Set `s_uiObjectClass = s_uiDrydockObjectClass`.
+- [ ] **S1b.3** Create 11 scalar classes in C inheriting from DrydockObject
+  via `hb_clsNew()` with super array. Assign to `s_uiArrayClass`,
+  `s_uiCharacterClass`, etc.
+- [ ] **S1b.4** Modify `hb_clsDoInit()` to EXTEND existing scalar classes
+  (add PRG methods) instead of creating new ones.
+- [ ] **S1b.5** Update `tests/scalar.prg` — remove `ENABLE TYPE CLASS ALL`.
+  Add tests for always-available `toString()`, `isScalar()`, `isNil()`.
+- [ ] **S1b.6** Verify: `ddtest` 4861/4861 pass. Test program with NO
+  includes works: `"hello":toString()`, `(42):className()`, `NIL:isNil()`.
+- [ ] **S1b.7** Update blueprint artifacts.
+
+### Files touched
+
+| File | Change |
+|------|--------|
+| `src/vm/classes.c` | DrydockObject + scalar classes in C; toString built-in; modify hb_clsDoInit |
+| `include/hbapicls.h` | Export new symbols if needed |
+| `src/harbour.def` | Export new symbols if needed |
+| `tests/scalar.prg` | Remove ENABLE TYPE CLASS ALL; add toString/isNil tests |
+
+### Rollback
+
+Revert classes.c changes. Scalar classes fall back to PRG-only mode.
 
 ---
 

@@ -87,6 +87,72 @@
 
 ---
 
+## Phase 1b: DrydockObject Root Class + Always-Available Scalars
+
+### TEST-SC1b-001: toString Works Without Any Includes
+- **Type**: New — the core test
+- **Covers**: S1b.1 — toString as built-in message
+- **Action**: Compile and run a .prg with NO includes, NO REQUEST, NO ENABLE:
+  ```prg
+  PROCEDURE MAIN()
+     ? "hello":toString()     // "hello"
+     ? (42):toString()        // "42"
+     ? .T.:toString()         // ".T."
+     ? NIL:toString()         // "NIL"
+     ? Date():toString()      // date string
+     ? {1,2,3}:toString()     // "{...}"
+     RETURN
+  ```
+- **Expected**: All lines produce output. No errors.
+
+### TEST-SC1b-002: className Works on All Types
+- **Type**: New
+- **Covers**: S1b.2 — DrydockObject base methods
+- **Action**:
+  ```prg
+  ? "hello":className()      // "CHARACTER"
+  ? (42):className()         // "NUMERIC"
+  ? .T.:className()          // "LOGICAL"
+  ? NIL:className()          // "NIL"
+  ? {}:className()           // "ARRAY"
+  ? {=>}:className()         // "HASH"
+  ```
+
+### TEST-SC1b-003: isScalar and isNil
+- **Type**: New
+- **Covers**: S1b.2 — universal methods
+- **Action**:
+  ```prg
+  ? "hello":isScalar()       // .T.
+  ? (42):isScalar()          // .T.
+  ? NIL:isNil()              // .T.
+  ? "hello":isNil()          // .F.
+  ```
+
+### TEST-SC1b-004: Scalar ClassH Is Non-Zero
+- **Type**: New
+- **Covers**: S1b.3 — scalar classes registered in C
+- **Action**:
+  ```prg
+  ? "hello":classH()         // non-zero (class exists)
+  ? (42):classH()            // non-zero
+  ? NIL:classH()             // non-zero
+  ```
+- **Expected**: All ClassH values > 0
+
+### TEST-SC1b-005: No Regression
+- **Type**: Regression
+- **Action**: `ddtest`
+- **Expected**: 4861/4861 tests pass
+
+### TEST-SC1b-006: Rich Methods Still Work When Linked
+- **Type**: Regression
+- **Covers**: S1b.4 — tscalar.prg extends C-created classes
+- **Action**: Run tests/scalar.prg (which uses ENABLE TYPE CLASS ALL)
+- **Expected**: 55/55 tests pass (same as Phase 1a)
+
+---
+
 ## Phase 2: Operator Methods
 
 ### TEST-SC2-001: Recursion Safety
