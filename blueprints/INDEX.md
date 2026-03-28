@@ -1,5 +1,5 @@
 # Blueprints Index
-**Updated**: 2026-03-26
+**Updated**: 2026-03-27
 **North Star**: Make Harbour a modern compiler — unify scalar types through OO dispatch, build a real type-checked compilation pipeline with persistent AST, unlock hardware-level performance, and replace the 26,793-line build system with a single `build.zig`.
 
 **Analysis**: [Compiler assessment](../doc/drydock-compiler-assessment.md) · [Build system assessment](../doc/drydock-build-assessment.md)
@@ -19,12 +19,13 @@
 
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
-| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- |
-| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | RefactorHvm Phase 1 (for Phase 3 only) |
+| A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :dart: FOCUSED | @tfonrouge | -- (new Tier 1 root) |
+| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- (independent) |
+| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | DrydockObject (for Phase 2+) |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
 | D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm Phase 3 (branch hints) |
 
-**Deliverable**: Every value is an object. Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
+**Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, always-available scalar classes. Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
 
 ## Tier 2 — Build a Real Compiler (months 6-14)
 
@@ -55,8 +56,8 @@
 
 | Name | Integrated Into | Notes |
 |------|----------------|-------|
-| ExtensionMethods | After ScalarClasses (B) | `EXTEND CLASS` syntax; blocked by ScalarClasses |
-| Reflection | After ScalarClasses (B) | `__Methods()`, `__Data()` as HBObject methods |
+| ExtensionMethods | After DrydockObject (A0) | `EXTEND CLASS` syntax; needs always-available scalar classes |
+| Reflection | After DrydockObject (A0) | `__Methods()`, `__Data()` as DrydockObject methods |
 | EncodingStrings | After ScalarClasses (B) | UTF-8 per-string encoding field |
 | Traits/Mixins | After ExtensionMethods | `TRAIT`/`MIXIN` syntax with method copy |
 | DAP Debug Server | Independent | Debug Adapter Protocol as contrib module |

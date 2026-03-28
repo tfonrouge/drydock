@@ -119,7 +119,8 @@ Benchmarks required:
 
 | Dependency | Status | Notes |
 |------------|--------|-------|
-| [RefactorHvm](../RefactorHvm(SUBSYSTEM)/BRIEF.md) Phases 0-1 | PLANNING | Reduces hvm.c operator cascade copies from ~33 to ~14. Required before Phase 3 (cascade simplification) to avoid maintaining N copies of each change. Phases 1-2 of ScalarClasses can proceed in parallel. |
+| [DrydockObject](../DrydockObject(SUBSYSTEM)/BRIEF.md) | FOCUSED | Provides always-available scalar classes in C. Required before Phase 2 (operators) — scalar classes must exist without linking constraints. |
+| [RefactorHvm](../RefactorHvm(SUBSYSTEM)/BRIEF.md) Phase 1 | PLANNING | Reduces hvm.c operator cascade copies. Required before Phase 3 (cascade simplification). Independent of DrydockObject. |
 
 ## Estimated Scope
 
