@@ -57,6 +57,9 @@ cName := GetUser()   /* No warning: return type unknown */
 - Dynamic dispatch results (method calls, macro evaluation)
 - Array element types
 - Hash value types
+- Cross-namespace type references (requires ModuleSystem, Phase H) — type
+  annotations like `AS MyApp.Models.User` will need to resolve via the
+  module's IMPORT declarations when ModuleSystem is active
 
 **Implementation**: AST walker that propagates type information through
 expressions and emits warnings at mismatch points. Uses the persistent AST

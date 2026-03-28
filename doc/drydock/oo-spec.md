@@ -262,6 +262,35 @@ capability through:
 - Named parameters: solve the "too many positional args" problem
 - Default values: solve the "optional args" problem
 
+### 2.15 No Module-Level Encapsulation
+
+**Problem**: All public functions and classes are globally visible. There is no
+file-level or module-level boundary beyond `STATIC FUNCTION` (which provides
+file-local hiding but no controlled export). The dynamic symbol table
+(`src/vm/dynsym.c`) is a flat namespace where name collisions are resolved by
+load order. There is no way to explicitly import/export symbols between
+compilation units.
+
+This interacts with the OO system in several ways:
+- `FRIEND CLASS` declarations (Feature Matrix, row 37) currently take flat
+  class names. When classes live in namespaces, FRIEND declarations must
+  reference qualified names across module boundaries.
+- Extension methods (`EXTEND CLASS`, Section 4 target state) have scoping
+  questions: does an extension declared in one module apply globally or only
+  within the declaring module?
+- `INTERFACE` (Section 2.3 resolution) will need to be referenced across
+  namespace boundaries — a class in one module implementing an interface
+  from another requires import.
+
+**Impact**: Large codebases suffer from accidental name shadowing. The contrib
+ecosystem (74 packages) avoids collisions through naming conventions (prefixes
+like `hbct_`, `hbwin_`) rather than language-level encapsulation. Encapsulation
+— a core OO principle — stops at the class boundary.
+
+**Resolution**: ModuleSystem (Tier 2) — `MODULE`/`IMPORT`/`EXPORT` syntax with
+namespace-qualified symbol resolution. See
+[ModuleSystem blueprint](../../blueprints/ModuleSystem(FEATURE)/BRIEF.md).
+
 ---
 
 ## 3. Universal Protocols
@@ -536,6 +565,10 @@ Externally, every value responds to messages.
 | Metaclass protocol | Future | 3 | Planned |
 | Inline caching | [InlineCaching](../blueprints/InlineCaching(FEATURE)/BRIEF.md) | 3 | Planned |
 | Operator dispatch optimization | RefactorHvm + ScalarClasses Phase 3 | 1 | Planned |
+| Module encapsulation | [ModuleSystem](../blueprints/ModuleSystem(FEATURE)/BRIEF.md) | 2 | Planned |
+| Namespace-qualified classes | [ModuleSystem](../blueprints/ModuleSystem(FEATURE)/BRIEF.md) | 2 | Planned |
+| FRIEND across modules | ModuleSystem + GradualTyping | 2 | Planned |
+| Extension method scope in modules | ModuleSystem + ExtensionMethods | 2 | Planned |
 
 ---
 

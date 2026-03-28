@@ -21,11 +21,12 @@
 |-------|------|------|--------|-------|------------|
 | A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (new Tier 1 root) |
 | A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- (independent) |
-| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | DrydockObject (for Phase 2+) |
+| B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | DrydockObject (done) |
+| B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | @tfonrouge | ScalarClasses Phase 2 |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
 | D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm Phase 3 (branch hints) |
 
-**Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, always-available scalar classes. Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
+**Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, all scalar methods in C (no ENABLE TYPE CLASS ALL needed), extension method syntax (`FUNCTION STRING.method()`). Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
 
 ## Tier 2 — Build a Real Compiler (months 6-14)
 
@@ -34,7 +35,7 @@
 | E | [PersistentAST](PersistentAST(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | -- (Tier 2 root) |
 | F | [GradualTyping](GradualTyping(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
 | G | [Optimizer](Optimizer(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | PersistentAST |
-| H | [ModuleSystem](ModuleSystem(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST (benefits) |
+| H | [ModuleSystem](ModuleSystem(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
 | I | [LSPServer](LSPServer(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST + GradualTyping |
 
 **Deliverable**: Compile-time type checking. Real optimizations. IDE support via LSP. Module system.
@@ -56,10 +57,9 @@
 
 | Name | Integrated Into | Notes |
 |------|----------------|-------|
-| ExtensionMethods | After DrydockObject (A0) | `EXTEND CLASS` syntax; needs always-available scalar classes |
 | Reflection | After DrydockObject (A0) | `__Methods()`, `__Data()` as DrydockObject methods |
 | EncodingStrings | After ScalarClasses (B) | UTF-8 per-string encoding field |
-| Traits/Mixins | After ExtensionMethods | `TRAIT`/`MIXIN` syntax with method copy |
+| Traits/Mixins | After ExtensionMethods (B+) | `TRAIT`/`MIXIN` syntax with method copy |
 | DAP Debug Server | Independent | Debug Adapter Protocol as contrib module |
 | Conditional Breakpoints | Independent | Extend `HB_BREAKPOINT` |
 

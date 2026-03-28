@@ -105,6 +105,8 @@ guarantee, not a class-level method.
 - Reflection — every value has introspectable class metadata
 - Debugger — can call toString() on any value for display
 - Error messages — can use toString() in error formatting
+- ModuleSystem — DrydockObject methods are "always-available" built-in messages
+  that work without IMPORT statements in namespaced code
 
 ---
 

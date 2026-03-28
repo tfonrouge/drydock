@@ -161,6 +161,10 @@ to statement scope.
 - Build tree-printer for debugging (`-ast` compiler flag)
 - Build symbol-resolution walker: resolve variable references to their
   `HB_HVAR` declarations
+- Future extension: this walker will be extended by ModuleSystem (Phase H)
+  to resolve IMPORT declarations and namespace-qualified symbol references
+  across compilation units. The walker infrastructure must support multi-file
+  symbol tables
 - Build type-annotation collector: gather `AS` type info into a per-function
   type map
 
@@ -221,7 +225,7 @@ to statement scope.
 - GradualTyping (Phase F) — needs AST for type analysis
 - Optimizer (Phase G) — needs AST/CFG for real optimizations
 - LSPServer (Phase I) — needs AST for IDE queries
-- ModuleSystem (Phase H) — benefits from cross-function symbol resolution
+- ModuleSystem (Phase H) — **requires** persistent AST for cross-module import resolution. Phase E.2's symbol-resolution walker must be extended to resolve IMPORT declarations across file boundaries
 
 ## 9. Risks
 

@@ -43,6 +43,11 @@ graph LR
 Solid arrows = hard dependency. Dashed arrows = recommended but not blocking.
 Tier 0 (ZigBuild) is independent — runs in parallel with everything.
 
+**Note**: ModuleSystem also requires changes to `src/macro/` (macro compiler
+namespace awareness) — this is an implicit dependency not tracked as a
+separate blueprint. See [ModuleSystem DESIGN.md](ModuleSystem(FEATURE)/DESIGN.md)
+Section 3 for details.
+
 ## Sprint Focus
 
 | Blueprint | Status | Goal This Sprint |
@@ -105,7 +110,7 @@ touch the build system.
 | PersistentAST | SUBSYSTEM | *(root)* | **Critical unlock** — retain AST after parsing; enables all Tier 2 work |
 | GradualTyping | FEATURE | PersistentAST | Make `AS` annotations produce compile-time warnings |
 | Optimizer | SUBSYSTEM | PersistentAST | CFG-based constant folding, propagation, DCE, CSE |
-| ModuleSystem | FEATURE | PersistentAST | `IMPORT`/`EXPORT` with namespaces |
+| ModuleSystem | FEATURE | PersistentAST | `IMPORT`/`EXPORT` with namespaces; ~13 weeks; requires macro compiler changes |
 | LSPServer | FEATURE | PersistentAST + GradualTyping | IDE integration via Language Server Protocol |
 
 ## Upcoming — Tier 3

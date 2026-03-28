@@ -72,6 +72,7 @@ Offset  Size    Field
 [4:6]   2       Version: uint16 LE = 3
 [6:8]   2       Pcode version: uint16 LE (HB_PCODE_VER)
 [8:?]   var     Module name: null-terminated string (source file path)
+[?:?]   var     Declared namespace: null-terminated string (MODULE name, or "" if none)
 [?:?+4] 4       Symbol count: uint32 LE
 [?:?]   var     Symbol table:
                   name: null-terminated string
@@ -88,6 +89,9 @@ Changes from v2:
 - Version field: 2 → 3
 - Added: pcode version (2 bytes) after version field
 - Added: module name (null-terminated string) after pcode version
+- Added: declared namespace (null-terminated string) after module name — stores
+  the `MODULE` declaration name for ModuleSystem (Phase H); empty string if no
+  MODULE declaration. See [ModuleSystem DESIGN.md](../ModuleSystem(FEATURE)/DESIGN.md) §6.
 - Scope field: 1 byte → 2 bytes (uint16 LE)
 
 ### 2.2 Writer Changes (`genhrb.c`)
@@ -97,6 +101,7 @@ Changes from v2:
 nSize = 10;  /* signature[4] + version[2] + pcode_version[2] + */
              /* module_name is added separately */
 nSize += strlen( szModuleName ) + 1;  /* module name + null */
+nSize += strlen( szNamespace ) + 1;  /* declared namespace + null (empty if none) */
 nSize += 4;  /* symbol count */
 /* per symbol: name + \0 + scope[2] + type[1] = name_len + 4 */
 ```
@@ -119,6 +124,7 @@ else if( iVersion >= 3 )
 {
    /* v3: read pcode version (2 bytes) */
    /* v3: read module name (null-terminated) */
+   /* v3: read declared namespace (null-terminated, "" if none) */
 }
 /* symbol reading: */
 if( iVersion >= 3 )

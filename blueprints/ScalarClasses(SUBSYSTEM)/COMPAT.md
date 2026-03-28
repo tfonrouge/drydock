@@ -64,6 +64,24 @@ hardcodes class handle numbers will break.
 
 **Mitigation**: No code should hardcode class handles. ClassH is an opaque value.
 
+### Fracture 4: Module System Interaction — Risk: LOW (forward reference)
+
+**Description**: When ModuleSystem (Phase H) ships, scalar class methods
+(Upper, Lower, Split, Map, etc.) must remain available without explicit
+IMPORT statements. Scalar classes are always-available VM-level features,
+not library features that belong to a namespace. This is a design constraint
+on ModuleSystem, not a change to ScalarClasses.
+
+**Call sites affected**: None — this is a constraint on future work.
+
+**Discoverable**: N/A — preventive.
+
+**Mitigation**: ModuleSystem defines a "built-in namespace exception list"
+(see [ModuleSystem DESIGN.md](../ModuleSystem(FEATURE)/DESIGN.md) Section 5)
+that includes all scalar class methods. Scalar methods are resolved via
+`hb_objGetMethod()` class dispatch, not the dynsym function table, so they
+are inherently namespace-independent.
+
 ## Migration Guide
 
 **For existing Harbour code**: No changes needed. Everything works as before.

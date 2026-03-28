@@ -48,6 +48,12 @@ OO-heavy code with inline caching.
 - Polymorphic upgrade when monomorphic cache misses on a different class
 - Megamorphic fallback preserves current behavior
 
+**Module system note**: Inline caches are keyed on (class handle, method
+symbol) pairs. Namespace-qualified class names resolve to the same class
+handles at runtime — namespaces are a compile-time concept. Therefore,
+inline caching does not need invalidation when modules are loaded, because
+class identity is unchanged by namespace qualification.
+
 ---
 
 ## 3. Dependencies

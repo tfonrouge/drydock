@@ -44,9 +44,9 @@ Persistent AST + type info + symbol tables
 | Phase | LSP Features |
 |-------|-------------|
 | I.1 | `textDocument/diagnostic` — real-time compile errors and warnings |
-| I.1 | `textDocument/definition` — go-to-definition for functions and variables |
+| I.1 | `textDocument/definition` — go-to-definition for functions and variables (namespace-aware when ModuleSystem active) |
 | I.2 | `textDocument/hover` — type info, function signatures, documentation |
-| I.2 | `textDocument/completion` — autocomplete for functions, methods, keywords |
+| I.2 | `textDocument/completion` — autocomplete for functions, methods, keywords; auto-import suggestions for namespaced symbols |
 | I.3 | `textDocument/references` — find all references |
 | I.3 | `textDocument/rename` — rename symbol across files |
 
@@ -66,6 +66,7 @@ Persistent AST + type info + symbol tables
 |------------|--------|-------|
 | PersistentAST (Phase E) | PLANNING | **Required** — AST needed for all IDE features |
 | GradualTyping (Phase F) | PLANNING | **Required for hover/completion** — type info feeds hover and autocomplete |
+| ModuleSystem (Phase H) | PLANNING | Recommended — namespace-aware go-to-definition and auto-import; LSP works without modules (global namespace only) |
 
 ## 4. Estimated Scope
 

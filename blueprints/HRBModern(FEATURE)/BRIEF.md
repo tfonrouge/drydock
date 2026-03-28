@@ -84,6 +84,7 @@ Bump `.hrb` version from 2 to 3. Add:
 | Scope (full) | 2 bytes (uint16) | Fix truncation — store complete `HB_FS_*` flags |
 | INIT/EXIT flags | 1 byte per symbol | Mark INIT/EXIT procedures for auto-execution on load |
 | Module name | null-terminated string | Source file path for debugging |
+| Declared namespace | null-terminated string | `MODULE` declaration name, or `""` if none (for ModuleSystem) |
 | Pcode version | 2 bytes (uint16) | `HB_PCODE_VER` for compatibility checking |
 | Compiler version | null-terminated string | Build provenance |
 

@@ -56,6 +56,7 @@ For the full technical analysis, see [drydock-analysis.md](drydock-analysis.md).
 | 7 | **Conditional Breakpoints** | Extend `HB_BREAKPOINT` with condition, hit count, logpoint fields | 1 wk |
 | 8 | **DAP Debug Server** | Debug Adapter Protocol server as contrib module; pluggable via `HB_DBG_CALLBACKS` interface | 7 wk |
 | 9 | **Traits / Mixins** | `TRAIT`/`ENDTRAIT`/`MIXIN` syntax; compile-time method copy via `__clsAddMsg()` | 3 wk |
+| 10 | **Module System** | `MODULE`/`IMPORT`/`EXPORT` syntax; namespace-qualified symbols; compile-time import verification | 13 wk |
 
 ### Dependencies
 
@@ -64,6 +65,8 @@ ScalarClasses ──→ ExtensionMethods ──→ Traits
 ScalarClasses ──→ Reflection
 ScalarClasses ──→ EncodingStrings
 ConditionalBreakpoints ──→ DAP
+PersistentAST ──→ ModuleSystem
+ModuleSystem ──→ LSPServer (for auto-import)
 ```
 
 ### Priority Matrix
@@ -79,6 +82,7 @@ ConditionalBreakpoints ──→ DAP
 | 2 | Gradual Typing | High | High | Medium |
 | 3 | Encoding Strings | High | Low | Medium |
 | 9 | Traits | Medium | Low | Transformative |
+| 10 | Module System | High | Medium | Transformative |
 
 ---
 
