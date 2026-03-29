@@ -56,6 +56,7 @@ registers when JIT-compiled).
 |------------|--------|-------|
 | PersistentAST (Phase E) | PLANNING | **Required** — register allocation needs AST/CFG |
 | Optimizer (Phase G) | PLANNING | Recommended — optimized AST produces better register code |
+| DD_METHOD_* macros | DONE | 60+ scalar methods use `DD_METHOD_SELF()`/`DD_METHOD_PAR()` — change macro, not each function |
 
 **Blocks**: LLVMBackend (Phase M) — LLVM lowering works much better from
 register-based IR than stack-based pcode.

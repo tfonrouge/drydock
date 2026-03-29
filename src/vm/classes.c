@@ -105,6 +105,22 @@
 #include "hbthread.h"
 #include "hboo.ch"
 
+/* Drydock: Method parameter access macros.
+ * DD_ prefix — new Drydock abstractions, not Harbour API.
+ * Abstracts stack-based parameter access so scalar class methods
+ * can be migrated to register-based VM without editing each function.
+ * When RegisterPcode lands, change these macros — not 60+ methods.
+ */
+#define DD_METHOD_SELF()          hb_stackSelfItem()
+#define DD_METHOD_PAR( n, type )  hb_param( (n), (type) )
+#define DD_METHOD_PARC( n )       hb_parc( n )
+#define DD_METHOD_PARCLEN( n )    hb_parclen( n )
+#define DD_METHOD_PARNI( n )      hb_parni( n )
+#define DD_METHOD_PARNIDEF( n, d ) hb_parnidef( (n), (d) )
+#define DD_METHOD_PARNS( n )      hb_parns( n )
+#define DD_METHOD_PARND( n )      hb_parnd( n )
+#define DD_METHOD_PARNL( n )      hb_parnl( n )
+
 typedef struct
 {
    HB_USHORT   uiClass;
@@ -156,7 +172,8 @@ typedef struct
    PHB_ITEM    pMutex;           /* Class sync method mutex */
    PHB_SYMB *  pFriendSyms;      /* Friend functions' symbols */
    PHB_CLSCAST pSuperClasses;    /* Super classes */
-   HB_U32      nOpFlags;         /* Flags for overloaded operators */
+   HB_U64      nOpFlags;         /* Flags for overloaded operators (was HB_U32, expanded for future ops) [drydock] */
+   HB_U32      uiVersion;        /* Class modification counter — increments on method add/remove. Used by inline caching for invalidation. [drydock] */
    HB_USHORT   uiClass;          /* This class handle */
    HB_USHORT   fHasDestructor;   /* has the class destructor message? */
    HB_USHORT   fHasOnError;      /* has the class OnError message? */
@@ -2678,7 +2695,7 @@ HB_BOOL hb_objHasOperator( PHB_ITEM pObject, HB_USHORT uiOperator )
    uiClass = hb_objGetClassH( pObject );
    if( uiClass && uiClass <= s_uiClasses )
    {
-      return ( s_pClasses[ uiClass ]->nOpFlags & ( 1 << uiOperator ) ) != 0;
+      return ( s_pClasses[ uiClass ]->nOpFlags & ( ( HB_U64 ) 1 << uiOperator ) ) != 0;
    }
 
    return HB_FALSE;
@@ -3152,7 +3169,7 @@ static HB_BOOL hb_clsAddMsg( HB_USHORT uiClass, const char * szMessage,
       HB_USHORT uiOperator, uiSprClass = 0, uiIndex = 0, uiPrevCls, uiPrevMth;
       PHB_SYMB  pOpSym, pFuncSym = NULL;
       HB_BOOL   fOK;
-      HB_U32    nOpFlags = 0;
+      HB_U64    nOpFlags = 0;
 
       if( pClass->fLocked )
          return HB_FALSE;
@@ -3225,7 +3242,7 @@ static HB_BOOL hb_clsAddMsg( HB_USHORT uiClass, const char * szMessage,
       {
          if( pOpSym->pDynSym == pMessage )
          {
-            nOpFlags |= 1 << uiOperator;
+            nOpFlags |= ( HB_U64 ) 1 << uiOperator;
             break;
          }
       }
@@ -3507,6 +3524,9 @@ static HB_BOOL hb_clsAddMsg( HB_USHORT uiClass, const char * szMessage,
             pNewMeth->pFuncSym = &s___msgSync;
          }
       }
+
+      /* Increment version for inline cache invalidation [drydock] */
+      pClass->uiVersion++;
    }
 
    return HB_TRUE;
@@ -3922,7 +3942,10 @@ HB_FUNC( __CLSDELMSG )
       PHB_DYNS pMsg = hb_dynsymFindName( pString->item.asString.value );
 
       if( pMsg )
+      {
          hb_clsFreeMsg( s_pClasses[ uiClass ], pMsg );
+         s_pClasses[ uiClass ]->uiVersion++; /* inline cache invalidation [drydock] */
+      }
    }
 }
 
@@ -4695,7 +4718,7 @@ HB_FUNC_STATIC( msgClassName )
 HB_FUNC_STATIC( msgToString )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
 
    if( HB_IS_STRING( pSelf ) )
       hb_itemReturn( pSelf );
@@ -4753,7 +4776,7 @@ HB_FUNC_STATIC( msgToString )
 HB_FUNC_STATIC( msgIsScalar )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( ! HB_IS_OBJECT( hb_stackSelfItem() ) );
+   hb_retl( ! HB_IS_OBJECT( DD_METHOD_SELF() ) );
 }
 
 
@@ -4764,7 +4787,7 @@ HB_FUNC_STATIC( msgIsScalar )
 HB_FUNC_STATIC( msgIsNil )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( HB_IS_NIL( hb_stackSelfItem() ) );
+   hb_retl( HB_IS_NIL( DD_METHOD_SELF() ) );
 }
 
 
@@ -4775,7 +4798,7 @@ HB_FUNC_STATIC( msgIsNil )
 HB_FUNC_STATIC( msgValType )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retc( hb_itemTypeStr( hb_stackSelfItem() ) );
+   hb_retc( hb_itemTypeStr( DD_METHOD_SELF() ) );
 }
 
 
@@ -4786,8 +4809,8 @@ HB_FUNC_STATIC( msgValType )
 HB_FUNC_STATIC( msgCompareTo )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pOther = hb_param( 1, HB_IT_ANY );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_ANY );
 
    if( pOther == NULL )
    {
@@ -4843,7 +4866,7 @@ HB_FUNC_STATIC( msgCompareTo )
 HB_FUNC_STATIC( msgIsComparable )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    hb_retl( HB_IS_NUMERIC( pSelf ) || HB_IS_STRING( pSelf ) ||
             HB_IS_DATE( pSelf ) || HB_IS_TIMESTAMP( pSelf ) ||
             HB_IS_LOGICAL( pSelf ) );
@@ -4860,7 +4883,7 @@ HB_FUNC_STATIC( msgIsComparable )
 HB_FUNC_STATIC( msgCharUpper )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    char * pszText = hb_cdpnDupUpper( hb_vmCDP(), hb_itemGetCPtr( pSelf ), &nLen );
    hb_retclen_buffer( pszText, nLen );
@@ -4869,7 +4892,7 @@ HB_FUNC_STATIC( msgCharUpper )
 HB_FUNC_STATIC( msgCharLower )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    char * pszText = hb_cdpnDupLower( hb_vmCDP(), hb_itemGetCPtr( pSelf ), &nLen );
    hb_retclen_buffer( pszText, nLen );
@@ -4878,7 +4901,7 @@ HB_FUNC_STATIC( msgCharLower )
 HB_FUNC_STATIC( msgCharTrim )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    const char * szText = hb_strLTrim( hb_itemGetCPtr( pSelf ), &nLen );
    nLen = hb_strRTrimLen( szText, nLen, HB_FALSE );
@@ -4888,7 +4911,7 @@ HB_FUNC_STATIC( msgCharTrim )
 HB_FUNC_STATIC( msgCharLTrim )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    const char * szText = hb_strLTrim( hb_itemGetCPtr( pSelf ), &nLen );
    hb_retclen( szText, nLen );
@@ -4897,7 +4920,7 @@ HB_FUNC_STATIC( msgCharLTrim )
 HB_FUNC_STATIC( msgCharRTrim )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    nLen = hb_strRTrimLen( hb_itemGetCPtr( pSelf ), nLen, HB_FALSE );
    hb_retclen( hb_itemGetCPtr( pSelf ), nLen );
@@ -4906,8 +4929,8 @@ HB_FUNC_STATIC( msgCharRTrim )
 HB_FUNC_STATIC( msgCharLeft )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   HB_ISIZ nLen = hb_parns( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   HB_ISIZ nLen = DD_METHOD_PARNS( 1 );
    if( nLen > 0 )
    {
       HB_SIZE nSrc = hb_itemGetCLen( pSelf );
@@ -4922,8 +4945,8 @@ HB_FUNC_STATIC( msgCharLeft )
 HB_FUNC_STATIC( msgCharRight )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   HB_ISIZ nLen = hb_parns( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   HB_ISIZ nLen = DD_METHOD_PARNS( 1 );
    if( nLen > 0 )
    {
       HB_SIZE nSrc = hb_itemGetCLen( pSelf );
@@ -4939,8 +4962,8 @@ HB_FUNC_STATIC( msgCharRight )
 HB_FUNC_STATIC( msgCharSubStr )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   HB_ISIZ nFrom = hb_parns( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   HB_ISIZ nFrom = DD_METHOD_PARNS( 1 );
    HB_SIZE nSrc = hb_itemGetCLen( pSelf );
    HB_SIZE nLen;
 
@@ -4956,7 +4979,7 @@ HB_FUNC_STATIC( msgCharSubStr )
    nLen = nSrc - ( HB_SIZE ) nFrom;
    if( HB_ISNUM( 2 ) )
    {
-      HB_ISIZ nReq = hb_parns( 2 );
+      HB_ISIZ nReq = DD_METHOD_PARNS( 2 );
       if( nReq >= 0 && ( HB_SIZE ) nReq < nLen )
          nLen = ( HB_SIZE ) nReq;
    }
@@ -4970,8 +4993,8 @@ HB_FUNC_STATIC( msgCharSubStr )
 HB_FUNC_STATIC( msgCharAt )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pSearch = hb_param( 1, HB_IT_STRING );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pSearch = DD_METHOD_PAR( 1, HB_IT_STRING );
    if( pSearch )
       hb_retns( hb_strAt( hb_itemGetCPtr( pSearch ), hb_itemGetCLen( pSearch ),
                            hb_itemGetCPtr( pSelf ), hb_itemGetCLen( pSelf ) ) );
@@ -4982,20 +5005,20 @@ HB_FUNC_STATIC( msgCharAt )
 HB_FUNC_STATIC( msgCharLen )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retns( hb_itemGetCLen( hb_stackSelfItem() ) );
+   hb_retns( hb_itemGetCLen( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgCharEmpty )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_itemGetCLen( hb_stackSelfItem() ) == 0 );
+   hb_retl( hb_itemGetCLen( DD_METHOD_SELF() ) == 0 );
 }
 
 HB_FUNC_STATIC( msgCharReplicate )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   HB_ISIZ nTimes = hb_parns( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   HB_ISIZ nTimes = DD_METHOD_PARNS( 1 );
    if( nTimes > 0 )
    {
       HB_SIZE nSrc = hb_itemGetCLen( pSelf );
@@ -5017,11 +5040,11 @@ HB_FUNC_STATIC( msgCharReplicate )
 HB_FUNC_STATIC( msgCharSplit )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   const char * szDelim = hb_parc( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   const char * szDelim = DD_METHOD_PARC( 1 );
    const char * szText = hb_itemGetCPtr( pSelf );
    HB_SIZE nTextLen = hb_itemGetCLen( pSelf );
-   HB_SIZE nDelimLen = szDelim ? hb_parclen( 1 ) : 0;
+   HB_SIZE nDelimLen = szDelim ? DD_METHOD_PARCLEN( 1 ) : 0;
    PHB_ITEM pArray = hb_itemArrayNew( 0 );
    HB_SIZE nStart = 0;
 
@@ -5056,7 +5079,7 @@ HB_FUNC_STATIC( msgCharSplit )
 HB_FUNC_STATIC( msgCharReverse )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    HB_SIZE nLen = hb_itemGetCLen( pSelf );
    if( nLen > 0 )
    {
@@ -5076,7 +5099,7 @@ HB_FUNC_STATIC( msgCharReverse )
 HB_FUNC_STATIC( msgNumAbs )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    if( HB_IS_NUMINT( pSelf ) )
    {
       HB_MAXINT nVal = HB_ITEM_GET_NUMINTRAW( pSelf );
@@ -5094,26 +5117,26 @@ HB_FUNC_STATIC( msgNumAbs )
 HB_FUNC_STATIC( msgNumInt )
 {
    HB_STACK_TLS_PRELOAD
-   double dVal = hb_itemGetND( hb_stackSelfItem() );
+   double dVal = hb_itemGetND( DD_METHOD_SELF() );
    hb_retnlen( hb_numInt( dVal ), 0, 0 );
 }
 
 HB_FUNC_STATIC( msgNumRound )
 {
    HB_STACK_TLS_PRELOAD
-   int iDec = hb_parnidef( 1, 0 );
-   hb_retndlen( hb_numRound( hb_itemGetND( hb_stackSelfItem() ), iDec ),
+   int iDec = DD_METHOD_PARNIDEF( 1, 0 );
+   hb_retndlen( hb_numRound( hb_itemGetND( DD_METHOD_SELF() ), iDec ),
                 0, HB_MAX( iDec, 0 ) );
 }
 
 HB_FUNC_STATIC( msgNumStr )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    if( HB_ISNUM( 1 ) )
    {
-      char * s = hb_itemStr( pSelf, hb_param( 1, HB_IT_NUMERIC ),
-                             hb_param( 2, HB_IT_NUMERIC ) );
+      char * s = hb_itemStr( pSelf, DD_METHOD_PAR( 1, HB_IT_NUMERIC ),
+                             DD_METHOD_PAR( 2, HB_IT_NUMERIC ) );
       if( s )
       {
          hb_retc( s );
@@ -5139,8 +5162,8 @@ HB_FUNC_STATIC( msgNumStr )
 HB_FUNC_STATIC( msgNumMin )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pOther = hb_param( 1, HB_IT_NUMERIC );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_NUMERIC );
    if( pOther )
    {
       double d1 = hb_itemGetND( pSelf );
@@ -5154,8 +5177,8 @@ HB_FUNC_STATIC( msgNumMin )
 HB_FUNC_STATIC( msgNumMax )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pOther = hb_param( 1, HB_IT_NUMERIC );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_NUMERIC );
    if( pOther )
    {
       double d1 = hb_itemGetND( pSelf );
@@ -5169,15 +5192,15 @@ HB_FUNC_STATIC( msgNumMax )
 HB_FUNC_STATIC( msgNumEmpty )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_itemGetND( hb_stackSelfItem() ) == 0.0 );
+   hb_retl( hb_itemGetND( DD_METHOD_SELF() ) == 0.0 );
 }
 
 HB_FUNC_STATIC( msgNumBetween )
 {
    HB_STACK_TLS_PRELOAD
-   double dVal = hb_itemGetND( hb_stackSelfItem() );
-   double dLow = hb_parnd( 1 );
-   double dHigh = hb_parnd( 2 );
+   double dVal = hb_itemGetND( DD_METHOD_SELF() );
+   double dLow = DD_METHOD_PARND( 1 );
+   double dHigh = DD_METHOD_PARND( 2 );
    hb_retl( dVal >= dLow && dVal <= dHigh );
 }
 
@@ -5187,7 +5210,7 @@ HB_FUNC_STATIC( msgDateYear )
 {
    HB_STACK_TLS_PRELOAD
    int iYear, iMonth, iDay;
-   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_dateDecode( hb_itemGetDL( DD_METHOD_SELF() ), &iYear, &iMonth, &iDay );
    hb_retni( iYear );
 }
 
@@ -5195,7 +5218,7 @@ HB_FUNC_STATIC( msgDateMonth )
 {
    HB_STACK_TLS_PRELOAD
    int iYear, iMonth, iDay;
-   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_dateDecode( hb_itemGetDL( DD_METHOD_SELF() ), &iYear, &iMonth, &iDay );
    hb_retni( iMonth );
 }
 
@@ -5203,33 +5226,33 @@ HB_FUNC_STATIC( msgDateDay )
 {
    HB_STACK_TLS_PRELOAD
    int iYear, iMonth, iDay;
-   hb_dateDecode( hb_itemGetDL( hb_stackSelfItem() ), &iYear, &iMonth, &iDay );
+   hb_dateDecode( hb_itemGetDL( DD_METHOD_SELF() ), &iYear, &iMonth, &iDay );
    hb_retni( iDay );
 }
 
 HB_FUNC_STATIC( msgDateDOW )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retni( hb_dateJulianDOW( hb_itemGetDL( hb_stackSelfItem() ) ) );
+   hb_retni( hb_dateJulianDOW( hb_itemGetDL( DD_METHOD_SELF() ) ) );
 }
 
 HB_FUNC_STATIC( msgDateEmpty )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_itemGetDL( hb_stackSelfItem() ) == 0 );
+   hb_retl( hb_itemGetDL( DD_METHOD_SELF() ) == 0 );
 }
 
 HB_FUNC_STATIC( msgDateAddDays )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retdl( hb_itemGetDL( hb_stackSelfItem() ) + hb_parnl( 1 ) );
+   hb_retdl( hb_itemGetDL( DD_METHOD_SELF() ) + DD_METHOD_PARNL( 1 ) );
 }
 
 HB_FUNC_STATIC( msgDateDiffDays )
 {
    HB_STACK_TLS_PRELOAD
-   long lSelf = hb_itemGetDL( hb_stackSelfItem() );
-   PHB_ITEM pOther = hb_param( 1, HB_IT_DATE );
+   long lSelf = hb_itemGetDL( DD_METHOD_SELF() );
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_DATE );
    if( pOther )
       hb_retnl( lSelf - hb_itemGetDL( pOther ) );
    else
@@ -5242,7 +5265,7 @@ HB_FUNC_STATIC( msgTSHour )
 {
    HB_STACK_TLS_PRELOAD
    int iHour, iMinutes, iSeconds, iMSec;
-   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+   hb_timeDecode( DD_METHOD_SELF()->item.asDateTime.time,
                   &iHour, &iMinutes, &iSeconds, &iMSec );
    hb_retni( iHour );
 }
@@ -5251,7 +5274,7 @@ HB_FUNC_STATIC( msgTSMinute )
 {
    HB_STACK_TLS_PRELOAD
    int iHour, iMinutes, iSeconds, iMSec;
-   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+   hb_timeDecode( DD_METHOD_SELF()->item.asDateTime.time,
                   &iHour, &iMinutes, &iSeconds, &iMSec );
    hb_retni( iMinutes );
 }
@@ -5260,7 +5283,7 @@ HB_FUNC_STATIC( msgTSSec )
 {
    HB_STACK_TLS_PRELOAD
    int iHour, iMinutes, iSeconds, iMSec;
-   hb_timeDecode( hb_stackSelfItem()->item.asDateTime.time,
+   hb_timeDecode( DD_METHOD_SELF()->item.asDateTime.time,
                   &iHour, &iMinutes, &iSeconds, &iMSec );
    hb_retni( iSeconds );
 }
@@ -5270,20 +5293,20 @@ HB_FUNC_STATIC( msgTSSec )
 HB_FUNC_STATIC( msgArrayLen )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retns( hb_arrayLen( hb_stackSelfItem() ) );
+   hb_retns( hb_arrayLen( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgArrayEmpty )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_arrayLen( hb_stackSelfItem() ) == 0 );
+   hb_retl( hb_arrayLen( DD_METHOD_SELF() ) == 0 );
 }
 
 HB_FUNC_STATIC( msgArraySort )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pBlock = DD_METHOD_PAR( 1, HB_IT_BLOCK );
    hb_arraySort( pSelf, NULL, NULL, pBlock );
    hb_itemReturn( pSelf );
 }
@@ -5291,15 +5314,15 @@ HB_FUNC_STATIC( msgArraySort )
 HB_FUNC_STATIC( msgArrayTail )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
+   PHB_ITEM pSelf = DD_METHOD_SELF();
    hb_arrayLast( pSelf, hb_stackReturnItem() );
 }
 
 HB_FUNC_STATIC( msgArrayEach )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pBlock = DD_METHOD_PAR( 1, HB_IT_BLOCK );
    if( pBlock )
    {
       HB_SIZE nLen = hb_arrayLen( pSelf );
@@ -5318,8 +5341,8 @@ HB_FUNC_STATIC( msgArrayEach )
 HB_FUNC_STATIC( msgArrayMap )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pBlock = DD_METHOD_PAR( 1, HB_IT_BLOCK );
    PHB_ITEM pResult = hb_itemArrayNew( 0 );
    if( pBlock )
    {
@@ -5338,8 +5361,8 @@ HB_FUNC_STATIC( msgArrayMap )
 HB_FUNC_STATIC( msgArrayFilter )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pBlock = hb_param( 1, HB_IT_BLOCK );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pBlock = DD_METHOD_PAR( 1, HB_IT_BLOCK );
    PHB_ITEM pResult = hb_itemArrayNew( 0 );
    if( pBlock )
    {
@@ -5359,8 +5382,8 @@ HB_FUNC_STATIC( msgArrayFilter )
 HB_FUNC_STATIC( msgArrayAdd )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pValue = hb_param( 1, HB_IT_ANY );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pValue = DD_METHOD_PAR( 1, HB_IT_ANY );
    if( pValue )
       hb_arrayAdd( pSelf, pValue );
    hb_itemReturn( pSelf );
@@ -5371,35 +5394,35 @@ HB_FUNC_STATIC( msgArrayAdd )
 HB_FUNC_STATIC( msgHashKeys )
 {
    HB_STACK_TLS_PRELOAD
-   hb_itemReturnRelease( hb_hashGetKeys( hb_stackSelfItem() ) );
+   hb_itemReturnRelease( hb_hashGetKeys( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgHashValues )
 {
    HB_STACK_TLS_PRELOAD
-   hb_itemReturnRelease( hb_hashGetValues( hb_stackSelfItem() ) );
+   hb_itemReturnRelease( hb_hashGetValues( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgHashLen )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retns( hb_hashLen( hb_stackSelfItem() ) );
+   hb_retns( hb_hashLen( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgHashEmpty )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_hashLen( hb_stackSelfItem() ) == 0 );
+   hb_retl( hb_hashLen( DD_METHOD_SELF() ) == 0 );
 }
 
 HB_FUNC_STATIC( msgHashHasKey )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pKey = hb_param( 1, HB_IT_ANY );
+   PHB_ITEM pKey = DD_METHOD_PAR( 1, HB_IT_ANY );
    if( pKey )
    {
       HB_SIZE nPos;
-      hb_retl( hb_hashScan( hb_stackSelfItem(), pKey, &nPos ) );
+      hb_retl( hb_hashScan( DD_METHOD_SELF(), pKey, &nPos ) );
    }
    else
       hb_retl( HB_FALSE );
@@ -5408,8 +5431,8 @@ HB_FUNC_STATIC( msgHashHasKey )
 HB_FUNC_STATIC( msgHashDel )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pKey = hb_param( 1, HB_IT_ANY );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pKey = DD_METHOD_PAR( 1, HB_IT_ANY );
    if( pKey )
       hb_hashDel( pSelf, pKey );
    hb_itemReturn( pSelf );
@@ -5420,13 +5443,13 @@ HB_FUNC_STATIC( msgHashDel )
 HB_FUNC_STATIC( msgLogIsTrue )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( hb_itemGetL( hb_stackSelfItem() ) );
+   hb_retl( hb_itemGetL( DD_METHOD_SELF() ) );
 }
 
 HB_FUNC_STATIC( msgLogToggle )
 {
    HB_STACK_TLS_PRELOAD
-   hb_retl( ! hb_itemGetL( hb_stackSelfItem() ) );
+   hb_retl( ! hb_itemGetL( DD_METHOD_SELF() ) );
 }
 
 
@@ -5440,8 +5463,8 @@ HB_FUNC_STATIC( msgLogToggle )
 HB_FUNC_STATIC( msgArrayOpPlus )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pOther = hb_param( 1, HB_IT_ANY );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_ANY );
 
    if( pOther )
    {
@@ -5472,8 +5495,8 @@ HB_FUNC_STATIC( msgArrayOpPlus )
 HB_FUNC_STATIC( msgHashOpPlus )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   PHB_ITEM pOther = hb_param( 1, HB_IT_HASH );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   PHB_ITEM pOther = DD_METHOD_PAR( 1, HB_IT_HASH );
 
    if( pOther )
    {
@@ -5493,8 +5516,8 @@ HB_FUNC_STATIC( msgHashOpPlus )
 HB_FUNC_STATIC( msgCharOpMult )
 {
    HB_STACK_TLS_PRELOAD
-   PHB_ITEM pSelf = hb_stackSelfItem();
-   HB_ISIZ nTimes = hb_parns( 1 );
+   PHB_ITEM pSelf = DD_METHOD_SELF();
+   HB_ISIZ nTimes = DD_METHOD_PARNS( 1 );
 
    if( nTimes > 0 )
    {

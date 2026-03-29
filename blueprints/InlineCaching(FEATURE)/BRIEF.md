@@ -62,6 +62,7 @@ class identity is unchanged by namespace qualification.
 |------------|--------|-------|
 | ScalarClasses (Phase B) | STABLE | Recommended — scalar classes add more dispatch sites that benefit from caching |
 | ComputedGoto (Phase C) | PLANNING | Recommended — threaded dispatch reduces overhead per cached call |
+| CLASS.uiVersion | DONE | Cache invalidation counter — increments on method add/remove. Landed in `classes.c` as part of OO structure prep. |
 
 **GC integration note**: IC slots that cache class/method references must be
 registered as **weak GC roots** via `dd_weak_handle()` (from DrydockAPI). If a
