@@ -76,4 +76,24 @@
 
 ---
 
+## 6. Pcode Emission Sequencing
+
+Pcode emission happens DURING parsing — this is UNCHANGED from the current
+single-pass model. The AST is retained as a SIDE EFFECT: expression nodes
+that would normally be freed after emission are instead kept in pBodyAST.
+
+The compilation phases are:
+1. Parse + emit pcode (single pass, current behavior)
+2. Retain AST in pBodyAST (new: don't free nodes)
+3. Symbol resolution walker (Phase E.2, post-processing)
+4. Type checking walker (Phase F.1, post-processing)
+5. Optimization walker (Phase G, post-processing)
+
+This means pcode is emitted BEFORE symbol resolution and type checking.
+Type errors discovered in Phase F.1 are WARNINGS, not errors — the pcode
+is already emitted and functional. This preserves backward compatibility:
+untyped code compiles exactly as before.
+
+---
+
 [<- Index](../INDEX.md) . [Map](../MAP.md) . [BRIEF](BRIEF.md) . **DESIGN**

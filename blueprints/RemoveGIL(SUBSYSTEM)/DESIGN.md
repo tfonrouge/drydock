@@ -35,6 +35,14 @@ Hybrid: lock-free READS of shared structures + mutex-protected WRITES.
 - Method tables: IMMUTABLE after class creation. No lock needed for reads.
   EXTEND CLASS creates a new method table copy, atomic-swaps.
   CLASS.uiVersion incremented atomically (for inline cache invalidation).
+
+Clarification on RCU + uiVersion: EXTEND CLASS creates a NEW CLASS struct
+copy. The old struct is frozen (immutable). The new struct has version+1.
+The s_pClasses[] array pointer is atomic-swapped to point to the new array
+containing the new CLASS pointer. Inline caches compare (class_handle, version)
+— if the class pointer changed (RCU swap), the cached version mismatches
+and the cache is invalidated. uiVersion is NEVER modified in place.
+
 - DDClass singletons: created under lock, then immutable. Thread-safe.
 
 ### 2.4 Per-Thread Structures
@@ -55,6 +63,40 @@ Hybrid: lock-free READS of shared structures + mutex-protected WRITES.
 - Acquire/release semantics for pointer swaps (RCU)
 - Sequential consistency NOT required (too expensive)
 - Platform-specific: use __atomic_* builtins (GCC/Clang), _InterlockedCompareExchange (MSVC)
+
+### 2.7 RCU Pseudocode for Symbol Table
+
+```c
+/* Writer (rare — only new symbol registration) */
+void hb_dynsymRegister_RCU( const char * szName )
+{
+   hb_threadMutexLock( s_dynsymMutex );    /* exclusive write lock */
+
+   PHB_DYNS * pNewTable = hb_xgrab( (s_uiDynSymCount + 1) * sizeof(PHB_DYNS) );
+   memcpy( pNewTable, s_pDynSymTable, s_uiDynSymCount * sizeof(PHB_DYNS) );
+   pNewTable[ s_uiDynSymCount ] = create_new_symbol( szName );
+   sort_table( pNewTable, s_uiDynSymCount + 1 );
+
+   /* Atomic swap — readers see either old or new, never partial */
+   __atomic_store_n( &s_pDynSymTable, pNewTable, __ATOMIC_RELEASE );
+   __atomic_store_n( &s_uiDynSymCount, s_uiDynSymCount + 1, __ATOMIC_RELEASE );
+
+   /* Old table freed after grace period (all readers done) */
+   hb_rcu_defer_free( pOldTable );
+
+   hb_threadMutexUnlock( s_dynsymMutex );
+}
+
+/* Reader (frequent — every symbol lookup) */
+PHB_DYNS hb_dynsymFind_RCU( const char * szName )
+{
+   /* No lock needed — atomic read of consistent snapshot */
+   PHB_DYNS * pTable = __atomic_load_n( &s_pDynSymTable, __ATOMIC_ACQUIRE );
+   HB_SIZE nCount = __atomic_load_n( &s_uiDynSymCount, __ATOMIC_ACQUIRE );
+
+   return binary_search( pTable, nCount, szName );
+}
+```
 
 ## 3. GC Integration
 

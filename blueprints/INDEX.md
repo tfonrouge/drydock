@@ -48,7 +48,7 @@
 | J | [RemoveGIL](RemoveGIL(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | GenerationalGC |
 | K | [RegisterPcode](RegisterPcode(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | PersistentAST + Optimizer |
 | L | [InlineCaching](InlineCaching(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | ScalarClasses (recommended) |
-| M | [LLVMBackend](LLVMBackend(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST + RegisterPcode |
+| M | [LLVMBackend](LLVMBackend(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST (required) + RegisterPcode (recommended) |
 
 **Deliverable**: True parallelism. Register-based VM. Inline caching for OO dispatch. Optional LLVM AOT/JIT.
 

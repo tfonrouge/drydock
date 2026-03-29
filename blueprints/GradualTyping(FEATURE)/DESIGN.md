@@ -27,6 +27,19 @@ typedef struct {
 } DD_TYPE;
 ```
 
+### 2.1 Where DD_TYPE Lives
+
+Type information is stored in TWO places:
+
+1. **HB_EXPR::pType** (new field) — During AST walk, each expression node
+   gets a DD_TYPE pointer recording its inferred/declared type. This is
+   compiler-internal and freed with the AST.
+
+2. **METHOD::itemType** (existing field) — For DATA declarations with AS TYPE,
+   the existing itemType field stores the runtime type constraint. DD_TYPE
+   extends this with uiTypeClass for class-typed fields. The existing
+   HB_TYPE bitmask is preserved for backward compatibility.
+
 ---
 
 ## 3. Checking Phases

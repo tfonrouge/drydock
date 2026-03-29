@@ -57,6 +57,21 @@ Encoding: 4-byte base + optional 4-byte extension word.
 
 Stack interpreter retained. Old .hrb files work. New pcode version for register format.
 
+## 6. Interaction with LLVMBackend
+
+LLVMBackend walks the PersistentAST directly — it does NOT consume RegisterPcode IR.
+RegisterPcode is an interpreter optimization (faster bytecode execution).
+LLVMBackend is a compiler optimization (native code generation from AST).
+
+They are independent paths:
+- Interpreted execution: AST → RegisterPcode → register VM
+- Compiled execution: AST → LLVM IR → native code
+
+The RegisterPcode calling convention (r0-r15) applies ONLY to the register
+interpreter. LLVM-compiled functions use cdecl. Cross-calls between interpreted
+and compiled functions go through the standard HB_FUNC() interface (stack-based),
+which both paths support.
+
 ---
 
 [<- Index](../INDEX.md) · [Map](../MAP.md) · [BRIEF](BRIEF.md) · **DESIGN**

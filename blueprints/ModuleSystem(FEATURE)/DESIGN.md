@@ -310,6 +310,12 @@ The compiler passes `"MYAPP.MODELS.USER"` as the class name to `__CLSNEW`
 
 **Implications**:
 - `ClassName()` returns `"MYAPP.MODELS.USER"` (the full qualified name)
+
+Implementation: the class's szName field stores the FULL qualified name
+("MYAPP.MODELS.USER"). ClassName() returns this directly. For backward
+compatibility, a new UnqualifiedName() method (or DDClass:shortName())
+returns just the class name without namespace ("USER").
+
 - `hb_clsFindMsg()` resolves methods on `"MYAPP.MODELS.USER"` — no change
   needed, class lookup is by handle (integer), not by name
 - Class handle assignment via `hb_objSetClass()` is unaffected — handles are

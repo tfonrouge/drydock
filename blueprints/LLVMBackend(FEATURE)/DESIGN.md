@@ -66,6 +66,16 @@ New code generator `src/compiler/genllvm.c`:
 
 Additive — LLVM is an optional backend. Existing C and .hrb backends unchanged. LLVM backend activated via flag (-gllvm or similar).
 
+## 6. Input Source
+
+LLVMBackend walks PersistentAST (Phase E) directly. It does NOT consume
+RegisterPcode IR. The INDEX.md dependency on RegisterPcode is "recommended"
+(RegisterPcode's register allocation insights inform LLVM IR generation)
+but NOT required.
+
+The code path is: .prg → Parser → AST → genllvm.c → LLVM IR → native code.
+RegisterPcode (genreg.c) is a parallel path for interpreted execution.
+
 ---
 
 [<- Index](../INDEX.md) · [Map](../MAP.md) · [BRIEF](BRIEF.md) · **DESIGN**

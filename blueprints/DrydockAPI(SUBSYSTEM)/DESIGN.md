@@ -374,6 +374,16 @@ table provides the indirection needed:
 
 **This is why DrydockAPI must come before GenerationalGC in the roadmap.**
 
+### Handle Table GC Sync
+
+When GenerationalGC moves an object (young → old promotion or semi-space copy):
+1. The GC walks the handle table linearly (O(n) where n = live handles)
+2. For each handle whose pItem points to the moved object, update pItem
+   to the new location
+3. The handle table is a GC ROOT — all live handles keep their objects alive
+4. Weak handles (dd_weak_handle) are NOT updated — they become NULL on collection
+5. Performance: handle table walk is O(live_handles), not O(heap_size)
+
 ### 6.3 Weak Handles (for InlineCaching)
 
 `dd_weak_handle()` creates a handle that does not prevent GC collection. If
