@@ -7,64 +7,58 @@ verified. 6/8 tests PASS, 2 deferred to H.5.
 
 ---
 
-## Phase H.2: .hrb Bundling (3 days)
+## Phase H.2: .hrb Bundling -- DEFERRED
 
-- **Milestone**: Multiple .hrb files combine into a single archive with TOC.
-  `drydock --hrb-bundle obj/hrb/*.hrb -o lib/hbrtl.hrb` works.
-
-### Steps
-
-- [ ] **H.2.1** Define bundle format in genhrb.c: signature `\xC0HBL`,
-  entry count, TOC (name + offset + size), concatenated .hrb v3 files.
-- [ ] **H.2.2** Implement bundle writer in `src/compiler/genhrb.c`.
-- [ ] **H.2.3** Implement bundle loader in `src/vm/runner.c` — single
-  `hb_hrbLoad()` call registers all modules.
-- [ ] **H.2.4** Add `--hrb-bundle` CLI flag to `src/compiler/cmdcheck.c`.
-- [ ] **H.2.5** Test: bundle 5 .hrb files, load bundle, verify all symbols.
-- [ ] **H.2.6** Verify: `ddtest` — 4861/4861 pass.
+Per-file embedding (H.3) is sufficient for current needs. Bundle format
+designed in BRIEF.md but not implemented. Can be added when multi-module
+loading becomes a bottleneck.
 
 ---
 
-## Phase H.3: .hrb Embedding (3 days)
+## Phase H.3: .hrb Embedding -- DONE (2026-03-29, `f87a281`)
 
-- **Milestone**: `drydock --hrb-embed lib/hbrtl.hrb -o hbrtl_hrb.c` generates
-  a C file with the bundle as a static byte array + accessor function.
+- **Milestone**: `hrbembed` tool generates C source with `.hrb` byte arrays.
 
-### Steps
+### Steps (all complete)
 
-- [ ] **H.3.1** Implement embed generator — reads .hrb bundle, writes C source
-  with `static const HB_BYTE s_data[] = {...}` and accessor function.
-- [ ] **H.3.2** Add `--hrb-embed` CLI flag.
-- [ ] **H.3.3** Add VM startup hook to load embedded .hrb data via accessor.
-- [ ] **H.3.4** Test: embed a bundle, link into executable, verify functions work.
+- [x] **H.3.1** Create `utils/hrbembed/hrbembed.c` — reads `.hrb` files, writes
+  C source with `static const HB_BYTE[]` arrays + `dd_hrbLoadEmbedded()`.
+- [x] **H.3.2** Test: compile `.prg → .hrb → .c embedding`, verify output.
 
 ---
 
-## Phase H.4: CLI Enhancements (2 days, independent)
+## Phase H.4: CLI Enhancements -- DONE (2026-03-29, `4e631e3`)
 
-- **Milestone**: `drydock -dp file.prg` prints human-readable pcode disassembly.
+- **Milestone**: `drydock -dp` pcode disassembler. 181 opcodes decoded.
 
-### Steps
+### Steps (all complete)
 
-- [ ] **H.4.1** Implement pcode disassembler in `src/compiler/hbmain.c` — walk
-  pcode bytes, print opcode names and operands.
-- [ ] **H.4.2** Add `-dp` CLI flag to `src/compiler/cmdcheck.c`.
-- [ ] **H.4.3** Test: disassemble hello.prg, verify output shows LINE/PUSHSYM/etc.
+- [x] **H.4.1** Create `src/compiler/gendis.c` — 181-entry opcode name table +
+  operand decoder (symbol names, jump targets, frame info, strings, numbers).
+- [x] **H.4.2** Add `fPCodeDis` flag to compiler params (`hbcompdf.h`).
+- [x] **H.4.3** Parse `-dp` flag in `cmdcheck.c`.
+- [x] **H.4.4** Call `hb_compGenDis()` after code generation in `hbmain.c`.
+- [x] **H.4.5** Add `gendis.c` to `Makefile` and `build.zig`.
+- [x] **H.4.6** Verify: disassembly output correct, ddtest 4861/4861.
+
+### Planned (not yet implemented)
+
+- [ ] **H.4.7** `-gejson` — JSON-formatted error/warning output for LSP/IDE.
+- [ ] **H.4.8** `--hrb-bundle` CLI flag (depends on H.2).
+- [ ] **H.4.9** `--hrb-embed` CLI flag (alternative to standalone `hrbembed` tool).
 
 ---
 
-## Phase H.5: Auto INIT/EXIT in .hrb (1 day)
+## Phase H.5: Auto INIT/EXIT in .hrb -- DONE (2026-03-29, `f87a281`)
 
-- **Milestone**: Loading a v3 .hrb file auto-executes INIT symbols and queues
-  EXIT symbols, matching the C path behavior.
+- **Milestone**: INIT procedures auto-execute on `.hrb` load. Matches C path.
 
-### Steps
+### Steps (all complete)
 
-- [ ] **H.5.1** In `runner.c` `hb_hrbLoad()`, after symbol registration,
-  call `hb_hrbInitStatic()` and `hb_hrbInit()` automatically for v3 files.
-- [ ] **H.5.2** Test: compile a .prg with INIT PROCEDURE to .hrb, load via
-  ddrun, verify INIT runs automatically.
-- [ ] **H.5.3** Re-run deferred tests TEST-H1-002 and TEST-H1-008.
+- [x] **H.5.1** Call `hb_hrbInit()` after `hb_hrbInitStatic()` in `runner.c`
+  — auto-executes INIT procedures on load.
+- [x] **H.5.2** Test: INIT PROCEDURE runs, extension methods from INIT work.
+- [x] **H.5.3** Verify: ddtest 4861/4861.
 
 ---
 
