@@ -256,7 +256,14 @@ static const char * hb_compChkParseSwitch( HB_COMP_DECL, const char * szSwitch,
          }
 
          case 'D':
-            szSwPtr = hb_compChkAddDefine( HB_COMP_PARAM, szSwPtr + 1, HB_TRUE, fEnv );
+            if( HB_TOUPPER( szSwPtr[ 1 ] ) == 'P' )
+            {
+               /* Drydock: -dp = disassemble pcode to stdout [drydock] */
+               HB_COMP_PARAM->fPCodeDis = HB_TRUE;
+               szSwPtr += 2;
+            }
+            else
+               szSwPtr = hb_compChkAddDefine( HB_COMP_PARAM, szSwPtr + 1, HB_TRUE, fEnv );
             break;
 
          case 'E':

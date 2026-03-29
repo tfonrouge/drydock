@@ -1,1 +1,1 @@
-ACTIVE: H.1 done (v3 format). H.3 done (embedding tool). H.5 done (INIT auto-exec). H.2/H.4 pending.
+STABLE: H.1 (v3 format), H.3 (embedding), H.4 (-dp disassembler), H.5 (INIT auto-exec) done. H.2 (bundling) deferred.

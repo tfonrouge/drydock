@@ -20,6 +20,7 @@ C_SOURCES := \
    exproptb.c \
    genc.c \
    gencc.c \
+   gendis.c \
    genhrb.c \
    hbcmplib.c \
    hbcomp.c \

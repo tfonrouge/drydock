@@ -11,7 +11,7 @@
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
 | Z | [ZigBuild](ZigBuild(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
-| H | [HRBModern](HRBModern(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
+| H | [HRBModern](HRBModern(FEATURE)/BRIEF.md) | FEATURE | :green_circle: STABLE | @tfonrouge | -- (independent) |
 
 **Deliverable**: Replace 26,793 lines of GNU Make + hbmk2 with ~500-line `build.zig`. Fix `.hrb` bytecode format and make it the default for dev builds — `.prg → .hrb` (milliseconds) instead of `.prg → .c → gcc → .o` (seconds). Correct incremental builds. One-command cross-compilation.
 
@@ -86,3 +86,4 @@
 | OO Structure Prep | 2026-03-29 | CLASS.uiVersion, HB_U64 nOpFlags, DD_METHOD_* macros for InlineCaching + RegisterPcode readiness. |
 | HRBModern H.5 | 2026-03-29 | INIT procedures auto-execute on .hrb load. Extension methods from INIT work. |
 | HRBModern H.3 | 2026-03-29 | `hrbembed` tool generates C embedding from .hrb files. Standalone executables without per-function C generation. |
+| HRBModern H.4 | 2026-03-29 | `drydock -dp` pcode disassembler. 181 opcodes decoded with symbol names, jump targets, operands. |

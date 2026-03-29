@@ -336,7 +336,7 @@ const pp_srcs: []const []const u8 = &.{
 
 const compiler_srcs: []const []const u8 = &.{
     "cmdcheck.c", "compi18n.c", "complex.c",  "expropta.c",
-    "exproptb.c", "genc.c",     "gencc.c",    "genhrb.c",
+    "exproptb.c", "genc.c",     "gencc.c",    "gendis.c",   "genhrb.c",
     "hbcmplib.c", "hbcomp.c",   "hbdbginf.c", "hbdead.c",
     "hbfix.c",    "hbfunchk.c", "hbgenerr.c", "hbident.c",
     "hblbl.c",    "hbmain.c",   "hbopt.c",    "hbpcode.c",

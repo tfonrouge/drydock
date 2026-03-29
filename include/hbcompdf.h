@@ -831,6 +831,7 @@ typedef struct _HB_COMP
    HB_BOOL           fExit;               /* force breaking compilation process */
    HB_BOOL           fPPO;                /* flag indicating, is .ppo output needed */
    HB_BOOL           fPPT;                /* flag indicating, is .ppt output needed */
+   HB_BOOL           fPCodeDis;           /* pcode disassembly output (-dp) [drydock] */
    HB_BOOL           fLineNumbers;        /* holds if we need pcodes with line numbers */
    HB_BOOL           fAnyWarning;         /* holds if there was any warning during the compilation process */
    HB_BOOL           fAutoMemvarAssume;   /* holds if undeclared variables are automatically assumed MEMVAR (-a)*/

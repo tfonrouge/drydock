@@ -4502,6 +4502,10 @@ static int hb_compCompile( HB_COMP_DECL, const char * szPrg, const char * szBuff
          }
 
          hb_compGenOutput( HB_COMP_PARAM, HB_COMP_PARAM->iLanguage );
+
+         /* Drydock: pcode disassembly output (-dp) [drydock] */
+         if( HB_COMP_PARAM->fPCodeDis )
+            hb_compGenDis( HB_COMP_PARAM );
       }
       else
          fGenCode = HB_FALSE;
