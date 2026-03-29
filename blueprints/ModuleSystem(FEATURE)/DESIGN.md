@@ -230,7 +230,24 @@ else if( ch == '.' && pLex->nSrc + 1 < pLex->nLen )
 }
 ```
 
-### 3.2 Grammar Changes (`src/macro/macro.y`)
+### 3.2 Disambiguation Limitation
+
+The macro grammar is FROZEN (67 rules). The lexer change makes
+`MyApp.Users.GetUser()` a single IDENTIFIER token containing dots.
+This works for FUNCTION CALLS (the FunCall rule handles it).
+
+**However**, the following ambiguity CANNOT be resolved in macro code:
+```prg
+&("MyApp.Config.Value")     /* namespace-qualified variable? or hash access? */
+```
+
+**Design decision**: In macro code, dotted names are ALWAYS treated as
+namespace-qualified identifiers (never as hash/object field access).
+Hash access in macros must use explicit bracket syntax: `hash["key"]`.
+This is acceptable because macro code is already a constrained subset
+of the language.
+
+### 3.3 Grammar Changes (`src/macro/macro.y`)
 
 No new grammar rule needed. The lexer produces a single IDENTIFIER token
 containing the dotted name (e.g., `"MYAPP.USERS.GETUSER"`). The existing

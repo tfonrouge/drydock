@@ -254,7 +254,24 @@ data segment initialization.
 **Does not block and is not blocked by** Tier 1 workstreams (RefactorHvm,
 ScalarClasses, etc.). Can proceed in parallel.
 
-## 8. Risks
+## 8. C Code Generation Transition Timeline
+
+The `.hrb`-first approach does NOT eliminate C code generation immediately.
+Both paths coexist during the transition:
+
+| Period | Development Build | Release Build | C Generation Status |
+|--------|------------------|---------------|---------------------|
+| **Tier 0-1** (now) | `.hrb` default (fast) | `.c` via gencc.c (optimized) | Active, maintained |
+| **Tier 2** (PersistentAST) | `.hrb` default | `.c` with AST-optimized pcode | Active, benefits from optimizer |
+| **Tier 3** (LLVMBackend) | `.hrb` default | LLVM native (replaces C) | Deprecated, kept for compat |
+| **Post Tier 3** | `.hrb` only | LLVM native only | Removed (with major version) |
+
+The `hb_xvm*` functions (110 wrappers in hvm.c) and `gencc.c` (2,771 lines)
+remain functional through Tier 2. LLVMBackend (Phase M) replaces them as the
+release compilation path. The C generation code is not removed until it has
+zero users.
+
+## 9. Risks
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
