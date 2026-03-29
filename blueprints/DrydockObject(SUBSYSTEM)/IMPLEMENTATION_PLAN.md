@@ -105,6 +105,26 @@
 
 ---
 
+## Phase D.8: DDClass — Class Reflection Objects -- DONE (2026-03-29)
+
+- **Milestone**: `"hello":classOf():name()` returns "CHARACTER". Every class
+  has a DDClass singleton. DrydockObject reduced to 3 behavior methods.
+  Reflection moved to DDClass objects.
+
+### Steps (all complete)
+
+- [x] **D.8.1** Create DDClass class with 1 DATA (class handle) and 9 methods:
+  name, methods, super, data, handle, ancestors, properties, isLocked, toString.
+- [x] **D.8.2** Implement singleton cache `s_pClassObjects[]` — one DDClass
+  instance per class handle, created lazily.
+- [x] **D.8.3** Add `classOf()` as default message + static symbol + dynsym.
+- [x] **D.8.4** Clean DrydockObject: remove className, classH, isScalar, isNil,
+  valType from class method table. They remain as default messages.
+  DrydockObject keeps: toString, compareTo, isComparable (3 methods).
+- [x] **D.8.5** Test: 16 DDClass tests pass. ddtest 4861/4861.
+
+---
+
 ## Risk Register
 
 | Risk | Phase | Severity | Mitigation |

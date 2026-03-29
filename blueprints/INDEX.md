@@ -58,7 +58,7 @@
 
 | Name | Integrated Into | Notes |
 |------|----------------|-------|
-| Reflection | After DrydockObject (A0) | `__Methods()`, `__Data()` as DrydockObject methods |
+| ~~Reflection~~ | Done (D.8) | Replaced by DDClass — `classOf():methods()`, `classOf():data()`, `classOf():super()` |
 | EncodingStrings | After ScalarClasses (B) | UTF-8 per-string encoding field |
 | Traits/Mixins | After ExtensionMethods (B+) | `TRAIT`/`MIXIN` syntax with method copy |
 | BlockScoping | PersistentAST (E) | `LOCAL` inside IF/FOR/WHILE blocks; compile-time scope restriction |
@@ -91,3 +91,4 @@
 | RefactorHvm R1c/R1d | 2026-03-29 | R1c skipped (structurally different). R1d: Clipper string subtraction comment. RefactorHvm → STABLE. |
 | ExtensionMethods E.2 | 2026-03-29 | Class name aliases: `EXTEND CLASS STRING` → CHARACTER, NUMBER → NUMERIC, BOOL → LOGICAL. |
 | Reflection (methods) | 2026-03-29 | `methods()` registered on DrydockObject — returns array of method names for any value. |
+| DrydockObject D.8 | 2026-03-29 | DDClass — class reflection objects with singletons. `classOf():name()`, `:methods()`, `:super()`, `:data()`. DrydockObject reduced to 3 behavior methods. |

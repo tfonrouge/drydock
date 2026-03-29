@@ -317,6 +317,17 @@ HB_FUNC_STATIC( msgArrayOpPlus );
 HB_FUNC_STATIC( msgHashOpPlus );
 HB_FUNC_STATIC( msgCharOpMult );
 
+/* DDClass — class reflection object */
+HB_FUNC_STATIC( msgClassOf );
+HB_FUNC_STATIC( msgDDClsName );
+HB_FUNC_STATIC( msgDDClsMethods );
+HB_FUNC_STATIC( msgDDClsSuper );
+HB_FUNC_STATIC( msgDDClsData );
+HB_FUNC_STATIC( msgDDClsHandle );
+HB_FUNC_STATIC( msgDDClsAncestors );
+HB_FUNC_STATIC( msgDDClsProperties );
+HB_FUNC_STATIC( msgDDClsIsLocked );
+
 /* Drydock API */
 HB_FUNC_EXTERN( __CLSFINDBYNAME );
 
@@ -410,6 +421,7 @@ static HB_SYMB s___msgIsNil       = { "ISNIL",           {HB_FS_MESSAGE}, {HB_FU
 static HB_SYMB s___msgValType     = { "VALTYPE",         {HB_FS_MESSAGE}, {HB_FUNCNAME( msgValType )},    NULL };
 static HB_SYMB s___msgCompareTo   = { "COMPARETO",       {HB_FS_MESSAGE}, {HB_FUNCNAME( msgCompareTo )},  NULL };
 static HB_SYMB s___msgIsComparable= { "ISCOMPARABLE",    {HB_FS_MESSAGE}, {HB_FUNCNAME( msgIsComparable )},NULL };
+static HB_SYMB s___msgClassOf     = { "CLASSOF",         {HB_FS_MESSAGE}, {HB_FUNCNAME( msgClassOf )},    NULL };
 
 static HB_SYMB s___msgKeys        = { "KEYS",            {HB_FS_MESSAGE}, {HB_FUNCNAME( msgNull )},       NULL };
 static HB_SYMB s___msgValues      = { "VALUES",          {HB_FS_MESSAGE}, {HB_FUNCNAME( msgNull )},       NULL };
@@ -447,6 +459,11 @@ static HB_USHORT s_uiPointerClass   = 0;
 
 static HB_USHORT s_uiObjectClass    = 0;
 static HB_USHORT s_uiDrydockObjectClass = 0;
+static HB_USHORT s_uiDDClassClass = 0;
+
+/* Singleton DDClass instances — one per class handle. Lazily allocated. */
+static PHB_ITEM * s_pClassObjects = NULL;
+static HB_USHORT  s_uiClassObjectsSize = 0;
 
 /* --- */
 
@@ -1254,6 +1271,7 @@ void hb_clsInit( void )
    s___msgValType.pDynSym        = hb_dynsymGetCase( s___msgValType.szName );
    s___msgCompareTo.pDynSym      = hb_dynsymGetCase( s___msgCompareTo.szName );
    s___msgIsComparable.pDynSym   = hb_dynsymGetCase( s___msgIsComparable.szName );
+   s___msgClassOf.pDynSym        = hb_dynsymGetCase( s___msgClassOf.szName );
 
    /* Register Drydock class API functions as dynamic symbols so they
     * are always discoverable — including from .hrb runtime. [drydock]
@@ -1285,17 +1303,29 @@ static void hb_clsInitDrydockObject( void )
 {
    PHB_ITEM pSuper;
 
-   /* Create DrydockObject root class with universal methods */
+   /* Create DrydockObject root class — BEHAVIOR methods only.
+    * Reflection (className, classH, isScalar, isNil, valType) remains as
+    * DEFAULT MESSAGES — works on any value but doesn't pollute class
+    * method tables. Reflection lives on DDClass objects. [drydock D.8]
+    */
    s_uiDrydockObjectClass = hb_clsCreate( 0, "DrydockObject" );
-   hb_clsAdd( s_uiDrydockObjectClass, "TOSTRING",  HB_FUNCNAME( msgToString ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "CLASSNAME", HB_FUNCNAME( msgClassName ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "CLASSH",    HB_FUNCNAME( msgClassH ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "ISSCALAR",  HB_FUNCNAME( msgIsScalar ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "ISNIL",     HB_FUNCNAME( msgIsNil ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "VALTYPE",      HB_FUNCNAME( msgValType ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "TOSTRING",     HB_FUNCNAME( msgToString ) );
    hb_clsAdd( s_uiDrydockObjectClass, "COMPARETO",    HB_FUNCNAME( msgCompareTo ) );
    hb_clsAdd( s_uiDrydockObjectClass, "ISCOMPARABLE", HB_FUNCNAME( msgIsComparable ) );
-   hb_clsAdd( s_uiDrydockObjectClass, "METHODS",      HB_FUNCNAME( msgClassSel ) );
+
+   /* DDClass — class reflection objects. Instances represent classes.
+    * 1 DATA: class handle. 8 methods for reflection. [drydock D.8]
+    */
+   s_uiDDClassClass = hb_clsCreate( 1, "DDClass" );
+   hb_clsAdd( s_uiDDClassClass, "NAME",       HB_FUNCNAME( msgDDClsName ) );
+   hb_clsAdd( s_uiDDClassClass, "METHODS",    HB_FUNCNAME( msgDDClsMethods ) );
+   hb_clsAdd( s_uiDDClassClass, "SUPER",      HB_FUNCNAME( msgDDClsSuper ) );
+   hb_clsAdd( s_uiDDClassClass, "DATA",       HB_FUNCNAME( msgDDClsData ) );
+   hb_clsAdd( s_uiDDClassClass, "HANDLE",     HB_FUNCNAME( msgDDClsHandle ) );
+   hb_clsAdd( s_uiDDClassClass, "ANCESTORS",  HB_FUNCNAME( msgDDClsAncestors ) );
+   hb_clsAdd( s_uiDDClassClass, "PROPERTIES", HB_FUNCNAME( msgDDClsProperties ) );
+   hb_clsAdd( s_uiDDClassClass, "ISLOCKED",   HB_FUNCNAME( msgDDClsIsLocked ) );
+   hb_clsAdd( s_uiDDClassClass, "TOSTRING",   HB_FUNCNAME( msgDDClsName ) );
 
    /* Set as default parent for all user-defined classes */
    s_uiObjectClass = s_uiDrydockObjectClass;
@@ -2466,6 +2496,9 @@ PHB_SYMB hb_objGetMethod( PHB_ITEM pObject, PHB_SYMB pMessage,
 
    else if( pMsg == s___msgIsComparable.pDynSym )
       return &s___msgIsComparable;
+
+   else if( pMsg == s___msgClassOf.pDynSym )
+      return &s___msgClassOf;
 
 /*
    else if( pMsg == s___msgClsParent.pDynSym )
@@ -4871,6 +4904,227 @@ HB_FUNC_STATIC( msgIsComparable )
    hb_retl( HB_IS_NUMERIC( pSelf ) || HB_IS_STRING( pSelf ) ||
             HB_IS_DATE( pSelf ) || HB_IS_TIMESTAMP( pSelf ) ||
             HB_IS_LOGICAL( pSelf ) );
+}
+
+
+/* ================================================================
+ * DDClass — class reflection objects [drydock D.8]
+ *
+ * Each DDClass instance wraps a class handle (DATA slot 1) and provides
+ * reflection methods. Singletons — one per class, cached lazily.
+ * ================================================================ */
+
+/* Get or create the DDClass singleton for a given class handle */
+static PHB_ITEM hb_clsGetClassObject( HB_USHORT uiClass )
+{
+   if( uiClass == 0 || uiClass > s_uiClasses )
+      return NULL;
+
+   /* Grow cache array if needed */
+   if( uiClass > s_uiClassObjectsSize )
+   {
+      HB_USHORT uiNewSize = s_uiClasses + 16;
+      s_pClassObjects = ( PHB_ITEM * ) hb_xrealloc( s_pClassObjects,
+                                                     ( uiNewSize + 1 ) * sizeof( PHB_ITEM ) );
+      while( s_uiClassObjectsSize < uiNewSize )
+         s_pClassObjects[ ++s_uiClassObjectsSize ] = NULL;
+   }
+
+   /* Lazy creation */
+   if( s_pClassObjects[ uiClass ] == NULL )
+   {
+      PHB_ITEM pObj = hb_clsInst( s_uiDDClassClass );
+      if( pObj )
+      {
+         hb_arraySetNI( pObj, 1, ( int ) uiClass );
+         s_pClassObjects[ uiClass ] = pObj;
+         /* Note: singletons are never released — they live for the VM lifetime.
+          * This is intentional: class objects are long-lived, GC-friendly. */
+      }
+   }
+
+   return s_pClassObjects[ uiClass ];
+}
+
+/* Helper: get class handle from DDClass instance DATA slot 1 */
+#define DD_CLS_HANDLE()  ( ( HB_USHORT ) hb_arrayGetNI( DD_METHOD_SELF(), 1 ) )
+
+/* <DDClass> := <any>:classOf()
+ * Default message — works on any value. Returns the DDClass singleton.
+ */
+HB_FUNC_STATIC( msgClassOf )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = hb_objGetClassH( DD_METHOD_SELF() );
+   PHB_ITEM pClassObj = hb_clsGetClassObject( uiClass );
+   if( pClassObj )
+      hb_itemReturn( pClassObj );
+   else
+      hb_ret();
+}
+
+/* <cName> := <DDClass>:name() */
+HB_FUNC_STATIC( msgDDClsName )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+      hb_retc( s_pClasses[ uiClass ]->szName );
+   else
+      hb_retc( "" );
+}
+
+/* <aNames> := <DDClass>:methods() */
+HB_FUNC_STATIC( msgDDClsMethods )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+   {
+      PCLASS pClass = s_pClasses[ uiClass ];
+      PMETHOD pMethod = pClass->pMethods;
+      HB_SIZE nLimit = hb_clsMthNum( pClass ), nPos = 0;
+      PHB_ITEM pReturn = hb_itemArrayNew( 0 );
+
+      do
+      {
+         if( pMethod->pMessage )
+         {
+            hb_arrayAddForward( pReturn,
+               hb_itemPutC( hb_stackAllocItem(), pMethod->pMessage->pSymbol->szName ) );
+            hb_stackPop();
+         }
+         ++pMethod;
+      }
+      while( ++nPos < nLimit );
+
+      hb_itemReturnRelease( pReturn );
+   }
+   else
+      hb_itemReturnRelease( hb_itemArrayNew( 0 ) );
+}
+
+/* <DDClass|NIL> := <DDClass>:super() */
+HB_FUNC_STATIC( msgDDClsSuper )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+   {
+      PCLASS pClass = s_pClasses[ uiClass ];
+      if( pClass->uiSuperClasses > 0 )
+      {
+         HB_USHORT uiSuper = pClass->pSuperClasses[ 0 ].uiClass;
+         PHB_ITEM pSuperObj = hb_clsGetClassObject( uiSuper );
+         if( pSuperObj )
+         {
+            hb_itemReturn( pSuperObj );
+            return;
+         }
+      }
+   }
+   hb_ret(); /* NIL — no super */
+}
+
+/* <aNames> := <DDClass>:data() */
+HB_FUNC_STATIC( msgDDClsData )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+   {
+      PCLASS pClass = s_pClasses[ uiClass ];
+      PMETHOD pMethod = pClass->pMethods;
+      HB_SIZE nLimit = hb_clsMthNum( pClass ), nPos = 0;
+      PHB_ITEM pReturn = hb_itemArrayNew( 0 );
+
+      do
+      {
+         if( pMethod->pMessage && pMethod->pFuncSym == &s___msgGetData )
+         {
+            hb_arrayAddForward( pReturn,
+               hb_itemPutC( hb_stackAllocItem(), pMethod->pMessage->pSymbol->szName ) );
+            hb_stackPop();
+         }
+         ++pMethod;
+      }
+      while( ++nPos < nLimit );
+
+      hb_itemReturnRelease( pReturn );
+   }
+   else
+      hb_itemReturnRelease( hb_itemArrayNew( 0 ) );
+}
+
+/* <nHandle> := <DDClass>:handle() */
+HB_FUNC_STATIC( msgDDClsHandle )
+{
+   HB_STACK_TLS_PRELOAD
+   hb_retni( ( int ) DD_CLS_HANDLE() );
+}
+
+/* <aClasses> := <DDClass>:ancestors() */
+HB_FUNC_STATIC( msgDDClsAncestors )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+   {
+      PCLASS pClass = s_pClasses[ uiClass ];
+      PHB_ITEM pReturn = hb_itemArrayNew( pClass->uiSuperClasses );
+      HB_USHORT ui;
+      for( ui = 0; ui < pClass->uiSuperClasses; ui++ )
+      {
+         PHB_ITEM pAncObj = hb_clsGetClassObject( pClass->pSuperClasses[ ui ].uiClass );
+         if( pAncObj )
+            hb_arraySet( pReturn, ui + 1, pAncObj );
+      }
+      hb_itemReturnRelease( pReturn );
+   }
+   else
+      hb_itemReturnRelease( hb_itemArrayNew( 0 ) );
+}
+
+/* <aNames> := <DDClass>:properties() */
+HB_FUNC_STATIC( msgDDClsProperties )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+   {
+      PCLASS pClass = s_pClasses[ uiClass ];
+      PMETHOD pMethod = pClass->pMethods;
+      HB_SIZE nLimit = hb_clsMthNum( pClass ), nPos = 0;
+      PHB_ITEM pReturn = hb_itemArrayNew( 0 );
+
+      do
+      {
+         if( pMethod->pMessage &&
+             ( pMethod->uiScope & HB_OO_CLSTP_PERSIST ) != 0 )
+         {
+            hb_arrayAddForward( pReturn,
+               hb_itemPutC( hb_stackAllocItem(), pMethod->pMessage->pSymbol->szName ) );
+            hb_stackPop();
+         }
+         ++pMethod;
+      }
+      while( ++nPos < nLimit );
+
+      hb_itemReturnRelease( pReturn );
+   }
+   else
+      hb_itemReturnRelease( hb_itemArrayNew( 0 ) );
+}
+
+/* <lLocked> := <DDClass>:isLocked() */
+HB_FUNC_STATIC( msgDDClsIsLocked )
+{
+   HB_STACK_TLS_PRELOAD
+   HB_USHORT uiClass = DD_CLS_HANDLE();
+   if( uiClass && uiClass <= s_uiClasses )
+      hb_retl( s_pClasses[ uiClass ]->fLocked != 0 );
+   else
+      hb_retl( HB_FALSE );
 }
 
 
