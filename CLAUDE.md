@@ -60,6 +60,23 @@ bin/linux/gcc/ddmake tests/hello.prg
 
 The path `bin/linux/gcc/` varies by platform and compiler.
 
+## Benchmarks
+
+```bash
+# Run all benchmarks and compare to baseline
+tests/bench/runner.sh
+
+# Run and save results as new baseline
+tests/bench/runner.sh --save
+
+# Show current baseline
+tests/bench/runner.sh --baseline
+```
+
+Benchmarks cover 5 areas: integer loops, string operations, array operations,
+OO method dispatch, and GC pressure. Run after any change to `src/vm/` files.
+Regressions >5% are flagged in red.
+
 ## Code Formatting
 
 ```bash

@@ -26,13 +26,11 @@ compilation path. Phase 0 is cancelled.
   Shared cascade with overflow/underflow bounds checked via direction.
 - [x] **R1b.2** Rewrite `hb_vmInc`, `hb_vmDec` as one-line wrappers.
 - [x] **R1b.3** Verify: `ddtest` — 4861/4861 pass.
-- [ ] **R1c.1** Create `hb_xvmArithByInt()` with operation enum parameter.
-  Implement shared cascade: NUMERIC→objOperatorCall.
-- [ ] **R1c.2** Rewrite `hb_xvmMultByInt`, `hb_xvmDivideByInt`,
-  `hb_xvmModulusByInt` as wrappers.
-- [ ] **R1c.3** Verify: `ddtest` — 4861/4861 pass.
-- [ ] **R1d** Add Clipper-compat comment to string subtraction in `hb_vmMinus`.
-- [ ] **R1.final** Update blueprint artifacts.
+- [x] **R1c** SKIPPED — Mult/Divide/Modulus have structurally different
+  semantics (zero-division, integer modulo). Factoring would add complexity
+  without improving clarity.
+- [x] **R1d** Add Clipper-compat comment to string subtraction in `hb_vmMinus`.
+- [x] **R1.final** Update blueprint artifacts.
 
 ### Files touched
 

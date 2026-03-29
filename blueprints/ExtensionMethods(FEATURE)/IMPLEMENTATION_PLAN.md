@@ -23,15 +23,16 @@
 
 ---
 
-## Phase E.2: Class Name Aliases in Compiler (1 day)
+## Phase E.2: Class Name Aliases -- DONE (2026-03-29)
 
-- **Milestone**: Compiler recognizes STRING, NUMBER, BOOL as class names
-  natively, not just in `__clsFindByName()`.
+- **Milestone**: STRING, NUMBER, BOOL recognized in EXTEND CLASS syntax.
 
-### Steps
+### Steps (all complete)
 
-- [ ] **E2.1** Add alias resolution in compiler symbol table (if applicable).
-- [ ] **E2.2** Test: `STRING` works in CLASS declarations and EXTEND commands.
+- [x] **E2.1** Add `#xcommand` rules in hbclass.ch: `EXTEND CLASS STRING`
+  → `EXTEND CLASS CHARACTER`, etc. Runtime aliases in `__clsFindByName()`
+  already handle the `__clsAddMsg()` call.
+- [x] **E2.2** Test: `EXTEND CLASS STRING WITH METHOD ...` works.
 
 ---
 

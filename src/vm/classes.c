@@ -1295,6 +1295,7 @@ static void hb_clsInitDrydockObject( void )
    hb_clsAdd( s_uiDrydockObjectClass, "VALTYPE",      HB_FUNCNAME( msgValType ) );
    hb_clsAdd( s_uiDrydockObjectClass, "COMPARETO",    HB_FUNCNAME( msgCompareTo ) );
    hb_clsAdd( s_uiDrydockObjectClass, "ISCOMPARABLE", HB_FUNCNAME( msgIsComparable ) );
+   hb_clsAdd( s_uiDrydockObjectClass, "METHODS",      HB_FUNCNAME( msgClassSel ) );
 
    /* Set as default parent for all user-defined classes */
    s_uiObjectClass = s_uiDrydockObjectClass;

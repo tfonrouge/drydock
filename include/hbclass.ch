@@ -590,6 +590,15 @@ DECLARE HBClass ;
  *      EXTEND CLASS STRING WITH METHOD Upper ACTION {|Self| Upper( Self ) }
  *      RETURN
  */
+/* Drydock: Modern class name aliases for EXTEND CLASS.
+ * STRING → CHARACTER, NUMBER → NUMERIC, BOOL → LOGICAL.
+ * Runtime alias resolution is in __clsFindByName(). These preprocessor
+ * rules handle the EXTEND CLASS syntax specifically. [drydock]
+ */
+#xcommand EXTEND CLASS STRING WITH <rest,...> => EXTEND CLASS CHARACTER WITH <rest>
+#xcommand EXTEND CLASS NUMBER WITH <rest,...> => EXTEND CLASS NUMERIC WITH <rest>
+#xcommand EXTEND CLASS BOOL WITH <rest,...>   => EXTEND CLASS LOGICAL WITH <rest>
+
 #xcommand EXTEND CLASS <!ClassName!> WITH METHOD <!MethodName!> ;
           ACTION <block> => ;
       __clsAddMsg( __clsFindByName( <(ClassName)> ), <(MethodName)>, ;

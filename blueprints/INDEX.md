@@ -20,7 +20,7 @@
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
 | A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (new Tier 1 root) |
-| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
+| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (independent) |
 | B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | DrydockObject (done) |
 | A1 | [DrydockAPI](DrydockAPI(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | ScalarClasses (done) |
 | B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | ScalarClasses (done) |
@@ -62,8 +62,9 @@
 | EncodingStrings | After ScalarClasses (B) | UTF-8 per-string encoding field |
 | Traits/Mixins | After ExtensionMethods (B+) | `TRAIT`/`MIXIN` syntax with method copy |
 | BlockScoping | PersistentAST (E) | `LOCAL` inside IF/FOR/WHILE blocks; compile-time scope restriction |
-| DAP Debug Server | Independent | Debug Adapter Protocol as contrib module |
-| Conditional Breakpoints | Independent | Extend `HB_BREAKPOINT` |
+| DAP Debug Server | Independent (after Conditional Breakpoints) | Debug Adapter Protocol contrib; see vision.md workstream #8 |
+| Conditional Breakpoints | Independent | Extend `HB_BREAKPOINT` with condition, hit count, logpoint |
+| Syntax Highlighting | Independent | Tree-sitter grammar + VS Code `.tmLanguage`; after grammar stabilizes |
 
 ## Completed
 
@@ -87,3 +88,6 @@
 | HRBModern H.5 | 2026-03-29 | INIT procedures auto-execute on .hrb load. Extension methods from INIT work. |
 | HRBModern H.3 | 2026-03-29 | `hrbembed` tool generates C embedding from .hrb files. Standalone executables without per-function C generation. |
 | HRBModern H.4 | 2026-03-29 | `drydock -dp` pcode disassembler. 181 opcodes decoded with symbol names, jump targets, operands. |
+| RefactorHvm R1c/R1d | 2026-03-29 | R1c skipped (structurally different). R1d: Clipper string subtraction comment. RefactorHvm → STABLE. |
+| ExtensionMethods E.2 | 2026-03-29 | Class name aliases: `EXTEND CLASS STRING` → CHARACTER, NUMBER → NUMERIC, BOOL → LOGICAL. |
+| Reflection (methods) | 2026-03-29 | `methods()` registered on DrydockObject — returns array of method names for any value. |

@@ -3456,6 +3456,13 @@ static void hb_vmMinus( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
       else
          hb_itemPutDL( pResult, hb_itemGetDL( pItem1 ) - hb_itemGetNL( pItem2 ) );
    }
+   /* NOTE: Clipper compatibility — string subtraction.
+    * "abc   " - "def" strips trailing spaces from left operand, appends
+    * right operand, then pads the result with spaces to the original
+    * combined length. This is NOT numeric subtraction — it is a Clipper
+    * string operation that predates modern conventions. Documented here
+    * because the behavior is surprising and easily confused with a bug.
+    */
    else if( HB_IS_STRING( pItem1 ) && HB_IS_STRING( pItem2 ) )
    {
       HB_SIZE nLen1 = pItem1->item.asString.length;
