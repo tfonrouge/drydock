@@ -22,10 +22,10 @@ compilation path. Phase 0 is cancelled.
 - [x] **R1a.2** Rewrite `hb_vmLess`, `hb_vmLessEqual`, `hb_vmGreater`,
   `hb_vmGreaterEqual` as one-line wrappers calling `hb_vmCompare()`.
 - [x] **R1a.3** Verify: `ddtest` — 4861/4861 pass.
-- [ ] **R1b.1** Create `hb_vmIncDec()` with direction parameter (+1/-1).
-  Implement shared cascade: INTEGER→LONG→DOUBLE→DATETIME→objOperatorCall.
-- [ ] **R1b.2** Rewrite `hb_vmInc`, `hb_vmDec` as wrappers.
-- [ ] **R1b.3** Verify: `ddtest` — 4861/4861 pass.
+- [x] **R1b.1** Create `hb_vmIncDec()` with `iDir` parameter (+1/-1).
+  Shared cascade with overflow/underflow bounds checked via direction.
+- [x] **R1b.2** Rewrite `hb_vmInc`, `hb_vmDec` as one-line wrappers.
+- [x] **R1b.3** Verify: `ddtest` — 4861/4861 pass.
 - [ ] **R1c.1** Create `hb_xvmArithByInt()` with operation enum parameter.
   Implement shared cascade: NUMERIC→objOperatorCall.
 - [ ] **R1c.2** Rewrite `hb_xvmMultByInt`, `hb_xvmDivideByInt`,
@@ -51,10 +51,11 @@ Each sub-step (R1a, R1b, R1c) is an independent commit. `git revert` any one.
 - [ ] Factor `hb_vmEqual`/`hb_vmNotEqual` into 1 function with negate flag.
   ~80 lines saved. Medium risk (NIL handling subtlety).
 
-## Phase 3: Performance Annotations (1-2 days, independent)
+## Phase 3: Performance Annotations -- DONE (2026-03-29, `94218ef`)
 
-- [ ] Add `HB_LIKELY`/`HB_UNLIKELY` macros to `include/hbdefs.h`.
-- [ ] Annotate operator fast paths, error paths, profiler/debug guards.
+- [x] Add `HB_LIKELY`/`HB_UNLIKELY` macros to `include/hbdefs.h`.
+- [x] Annotate operator fast paths (hb_vmPlus, hb_vmMinus, hb_vmIncDec,
+  hb_vmCompare) with HB_LIKELY. Operator fallback with HB_UNLIKELY.
 
 ---
 

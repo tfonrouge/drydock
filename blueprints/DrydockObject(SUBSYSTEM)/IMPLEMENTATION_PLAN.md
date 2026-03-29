@@ -88,6 +88,23 @@
 
 ---
 
+## Phase D.6: Ordering Protocol (compareTo/isComparable) -- DONE (2026-03-29, `94218ef`)
+
+- **Milestone**: `(3):compareTo(5)` returns -1. `"x":isComparable()` returns .T.
+  Works on any value as default messages. 16 new tests pass.
+
+### Steps (all complete)
+
+- [x] **D.6.1** Add static symbols, dynsym registration, and default message
+  checks for COMPARETO and ISCOMPARABLE.
+- [x] **D.6.2** Implement `msgCompareTo()` — returns -1/0/1 for numeric, string,
+  date, timestamp, logical. Returns NIL for incomparable types.
+- [x] **D.6.3** Implement `msgIsComparable()` — returns .T. for ordered types.
+- [x] **D.6.4** Register on DrydockObject class via `hb_clsAdd()`.
+- [x] **D.6.5** Test: 16 tests pass. ddtest 4861/4861.
+
+---
+
 ## Risk Register
 
 | Risk | Phase | Severity | Mitigation |

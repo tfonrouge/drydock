@@ -80,3 +80,6 @@
 | ScalarClasses Phase 3 | 2026-03-28 | Benchmarks (int 20ms/1M, Upper 84ms/1M). Zero regression. ENABLE TYPE CLASS ALL deprecation note. STABLE. |
 | ExtensionMethods E.1 | 2026-03-28 | `EXTEND CLASS STRING WITH METHOD ... ACTION`. `__clsFindByName()` with STRING/NUMBER/BOOL aliases. Works in .hrb runtime. |
 | RefactorHvm R1a | 2026-03-29 | Factor 4 ordering comparisons into `hb_vmCompare()` — ~180 lines saved. ddtest 4861/4861. |
+| RefactorHvm R1b | 2026-03-29 | Factor Inc/Dec into `hb_vmIncDec(iDir)` — ~60 lines saved. |
+| RefactorHvm Phase 3 | 2026-03-29 | `HB_LIKELY`/`HB_UNLIKELY` branch hints in hbdefs.h. Hot paths annotated in hvm.c. |
+| DrydockObject Phase 2 | 2026-03-29 | `compareTo()` (-1/0/1/NIL) and `isComparable()` on any value. 16 tests pass. |
