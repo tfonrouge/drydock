@@ -17,7 +17,9 @@ graph LR
     DO --> RF[Reflection]
     A[RefactorHvm] -.-> B
     A -.-> C[ComputedGoto]
-    A -.-> D[GenerationalGC]
+    B --> API[DrydockAPI]
+    API --> D[GenerationalGC]
+    A -.-> D
     B --> ES[EncodingStrings]
     EM --> TR[Traits]
   end
@@ -35,6 +37,7 @@ graph LR
     E --> K[RegisterPcode]
     G --> K
     K --> M[LLVMBackend]
+    API -.-> M
     B -.-> L[InlineCaching]
     C -.-> L
   end

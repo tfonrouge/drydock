@@ -4168,13 +4168,23 @@ static void hb_vmNotEqual( void )
    }
 }
 
-static void hb_vmLess( void )
+/* Unified ordering comparison — replaces 4 near-identical functions.
+ * iMode: 0=Less, 1=LessEqual, 2=Greater, 3=GreaterEqual [drydock]
+ */
+static void hb_vmCompare( int iMode )
 {
    HB_STACK_TLS_PRELOAD
    PHB_ITEM pItem2;
    PHB_ITEM pItem1;
 
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmLess()" ) );
+   static const HB_USHORT s_uiOOOps[] = {
+      HB_OO_OP_LESS, HB_OO_OP_LESSEQUAL,
+      HB_OO_OP_GREATER, HB_OO_OP_GREATEREQUAL
+   };
+   static const int s_iErrCodes[] = { 1073, 1074, 1075, 1076 };
+   static const char * s_szOps[] = { "<", "<=", ">", ">=" };
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_vmCompare(%d)", iMode ) );
 
    pItem2 = hb_stackItemFromTop( -1 );
    pItem1 = hb_stackItemFromTop( -2 );
@@ -4185,50 +4195,94 @@ static void hb_vmLess( void )
       hb_stackPop();
       hb_itemClear( pItem1 );
       pItem1->type = HB_IT_LOGICAL;
-      pItem1->item.asLogical.value = i < 0;
+      switch( iMode )
+      {
+         case 0: pItem1->item.asLogical.value = i < 0;  break;
+         case 1: pItem1->item.asLogical.value = i <= 0; break;
+         case 2: pItem1->item.asLogical.value = i > 0;  break;
+         case 3: pItem1->item.asLogical.value = i >= 0; break;
+      }
    }
    else if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
    {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMINTRAW( pItem1 ) <
-                                       HB_ITEM_GET_NUMINTRAW( pItem2 ) );
+      HB_MAXINT n1 = HB_ITEM_GET_NUMINTRAW( pItem1 );
+      HB_MAXINT n2 = HB_ITEM_GET_NUMINTRAW( pItem2 );
+      switch( iMode )
+      {
+         case 0: pItem1->item.asLogical.value = n1 < n2;  break;
+         case 1: pItem1->item.asLogical.value = n1 <= n2; break;
+         case 2: pItem1->item.asLogical.value = n1 > n2;  break;
+         case 3: pItem1->item.asLogical.value = n1 >= n2; break;
+      }
       pItem1->type = HB_IT_LOGICAL;
       hb_stackDec();
    }
    else if( HB_IS_NUMERIC( pItem1 ) && HB_IS_NUMERIC( pItem2 ) )
    {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMDBLRAW( pItem1 ) <
-                                       HB_ITEM_GET_NUMDBLRAW( pItem2 ) );
+      double d1 = HB_ITEM_GET_NUMDBLRAW( pItem1 );
+      double d2 = HB_ITEM_GET_NUMDBLRAW( pItem2 );
+      switch( iMode )
+      {
+         case 0: pItem1->item.asLogical.value = d1 < d2;  break;
+         case 1: pItem1->item.asLogical.value = d1 <= d2; break;
+         case 2: pItem1->item.asLogical.value = d1 > d2;  break;
+         case 3: pItem1->item.asLogical.value = d1 >= d2; break;
+      }
       pItem1->type = HB_IT_LOGICAL;
       hb_stackDec();
    }
    else if( HB_IS_DATETIME( pItem1 ) && HB_IS_DATETIME( pItem2 ) )
    {
+      long j1 = pItem1->item.asDateTime.julian;
+      long j2 = pItem2->item.asDateTime.julian;
       if( HB_IS_TIMESTAMP( pItem1 ) && HB_IS_TIMESTAMP( pItem2 ) )
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian <
-                                          pItem2->item.asDateTime.julian ) ||
-                                        ( pItem1->item.asDateTime.julian ==
-                                          pItem2->item.asDateTime.julian &&
-                                          pItem1->item.asDateTime.time <
-                                          pItem2->item.asDateTime.time );
+      {
+         long t1 = pItem1->item.asDateTime.time;
+         long t2 = pItem2->item.asDateTime.time;
+         int cmp = ( j1 != j2 ) ? ( j1 < j2 ? -1 : 1 ) :
+                   ( t1 != t2 ) ? ( t1 < t2 ? -1 : 1 ) : 0;
+         switch( iMode )
+         {
+            case 0: pItem1->item.asLogical.value = cmp < 0;  break;
+            case 1: pItem1->item.asLogical.value = cmp <= 0; break;
+            case 2: pItem1->item.asLogical.value = cmp > 0;  break;
+            case 3: pItem1->item.asLogical.value = cmp >= 0; break;
+         }
+      }
       else
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian <
-                                          pItem2->item.asDateTime.julian );
+      {
+         switch( iMode )
+         {
+            case 0: pItem1->item.asLogical.value = j1 < j2;  break;
+            case 1: pItem1->item.asLogical.value = j1 <= j2; break;
+            case 2: pItem1->item.asLogical.value = j1 > j2;  break;
+            case 3: pItem1->item.asLogical.value = j1 >= j2; break;
+         }
+      }
       pItem1->type = HB_IT_LOGICAL;
       hb_stackDec();
    }
    else if( HB_IS_LOGICAL( pItem1 ) && HB_IS_LOGICAL( pItem2 ) )
    {
-      pItem1->item.asLogical.value = ! pItem1->item.asLogical.value &&
-                                     pItem2->item.asLogical.value;
+      HB_BOOL a = pItem1->item.asLogical.value;
+      HB_BOOL b = pItem2->item.asLogical.value;
+      switch( iMode )
+      {
+         case 0: pItem1->item.asLogical.value = !a && b;  break; /* Less: .F. < .T. */
+         case 1: pItem1->item.asLogical.value = !a || b;  break; /* LessEqual */
+         case 2: pItem1->item.asLogical.value = a && !b;  break; /* Greater */
+         case 3: pItem1->item.asLogical.value = a || !b;  break; /* GreaterEqual */
+      }
       hb_stackDec();
    }
-   else if( hb_objOperatorCall( HB_OO_OP_LESS, pItem1, pItem1, pItem2, NULL ) )
+   else if( hb_objOperatorCall( s_uiOOOps[ iMode ], pItem1, pItem1, pItem2, NULL ) )
       hb_stackPop();
 
    else
    {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1073, NULL, "<", 2, pItem1, pItem2 );
-
+      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, s_iErrCodes[ iMode ],
+                                              NULL, s_szOps[ iMode ],
+                                              2, pItem1, pItem2 );
       if( pResult )
       {
          hb_stackPop();
@@ -4238,215 +4292,10 @@ static void hb_vmLess( void )
    }
 }
 
-static void hb_vmLessEqual( void )
-{
-   HB_STACK_TLS_PRELOAD
-   PHB_ITEM pItem2;
-   PHB_ITEM pItem1;
-
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmLessEqual()" ) );
-
-   pItem2 = hb_stackItemFromTop( -1 );
-   pItem1 = hb_stackItemFromTop( -2 );
-
-   if( HB_IS_STRING( pItem1 ) && HB_IS_STRING( pItem2 ) )
-   {
-      int i = hb_itemStrCmp( pItem1, pItem2, HB_FALSE );
-      hb_stackPop();
-      hb_itemClear( pItem1 );
-      pItem1->type = HB_IT_LOGICAL;
-      pItem1->item.asLogical.value = i <= 0;
-   }
-   else if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMINTRAW( pItem1 ) <=
-                                       HB_ITEM_GET_NUMINTRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_NUMERIC( pItem1 ) && HB_IS_NUMERIC( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMDBLRAW( pItem1 ) <=
-                                       HB_ITEM_GET_NUMDBLRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_DATETIME( pItem1 ) && HB_IS_DATETIME( pItem2 ) )
-   {
-      if( HB_IS_TIMESTAMP( pItem1 ) && HB_IS_TIMESTAMP( pItem2 ) )
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian <
-                                          pItem2->item.asDateTime.julian ) ||
-                                        ( pItem1->item.asDateTime.julian ==
-                                          pItem2->item.asDateTime.julian &&
-                                          pItem1->item.asDateTime.time <=
-                                          pItem2->item.asDateTime.time );
-      else
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian <=
-                                          pItem2->item.asDateTime.julian );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_LOGICAL( pItem1 ) && HB_IS_LOGICAL( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ! pItem1->item.asLogical.value ||
-                                     pItem2->item.asLogical.value;
-      hb_stackDec();
-   }
-   else if( hb_objOperatorCall( HB_OO_OP_LESSEQUAL, pItem1, pItem1, pItem2, NULL ) )
-      hb_stackPop();
-
-   else
-   {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1074, NULL, "<=", 2, pItem1, pItem2 );
-
-      if( pResult )
-      {
-         hb_stackPop();
-         hb_itemMove( pItem1, pResult );
-         hb_itemRelease( pResult );
-      }
-   }
-}
-
-static void hb_vmGreater( void )
-{
-   HB_STACK_TLS_PRELOAD
-   PHB_ITEM pItem2;
-   PHB_ITEM pItem1;
-
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmGreater()" ) );
-
-   pItem2 = hb_stackItemFromTop( -1 );
-   pItem1 = hb_stackItemFromTop( -2 );
-
-   if( HB_IS_STRING( pItem1 ) && HB_IS_STRING( pItem2 ) )
-   {
-      int i = hb_itemStrCmp( pItem1, pItem2, HB_FALSE );
-      hb_stackPop();
-      hb_itemClear( pItem1 );
-      pItem1->type = HB_IT_LOGICAL;
-      pItem1->item.asLogical.value = i > 0;
-   }
-   else if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMINTRAW( pItem1 ) >
-                                       HB_ITEM_GET_NUMINTRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_NUMERIC( pItem1 ) && HB_IS_NUMERIC( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMDBLRAW( pItem1 ) >
-                                       HB_ITEM_GET_NUMDBLRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_DATETIME( pItem1 ) && HB_IS_DATETIME( pItem2 ) )
-   {
-      if( HB_IS_TIMESTAMP( pItem1 ) && HB_IS_TIMESTAMP( pItem2 ) )
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian >
-                                          pItem2->item.asDateTime.julian ) ||
-                                        ( pItem1->item.asDateTime.julian ==
-                                          pItem2->item.asDateTime.julian &&
-                                          pItem1->item.asDateTime.time >
-                                          pItem2->item.asDateTime.time );
-      else
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian >
-                                          pItem2->item.asDateTime.julian );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_LOGICAL( pItem1 ) && HB_IS_LOGICAL( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = pItem1->item.asLogical.value &&
-                                     ! pItem2->item.asLogical.value;
-      hb_stackDec();
-   }
-   else if( hb_objOperatorCall( HB_OO_OP_GREATER, pItem1, pItem1, pItem2, NULL ) )
-      hb_stackPop();
-
-   else
-   {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1075, NULL, ">", 2, pItem1, pItem2 );
-
-      if( pResult )
-      {
-         hb_stackPop();
-         hb_itemMove( pItem1, pResult );
-         hb_itemRelease( pResult );
-      }
-   }
-}
-
-static void hb_vmGreaterEqual( void )
-{
-   HB_STACK_TLS_PRELOAD
-   PHB_ITEM pItem2;
-   PHB_ITEM pItem1;
-
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmGreaterEqual()" ) );
-
-   pItem2 = hb_stackItemFromTop( -1 );
-   pItem1 = hb_stackItemFromTop( -2 );
-
-   if( HB_IS_STRING( pItem1 ) && HB_IS_STRING( pItem2 ) )
-   {
-      int i = hb_itemStrCmp( pItem1, pItem2, HB_FALSE );
-      hb_stackPop();
-      hb_itemClear( pItem1 );
-      pItem1->type = HB_IT_LOGICAL;
-      pItem1->item.asLogical.value = i >= 0;
-   }
-   else if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMINTRAW( pItem1 ) >=
-                                       HB_ITEM_GET_NUMINTRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_NUMERIC( pItem1 ) && HB_IS_NUMERIC( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = ( HB_ITEM_GET_NUMDBLRAW( pItem1 ) >=
-                                       HB_ITEM_GET_NUMDBLRAW( pItem2 ) );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_DATETIME( pItem1 ) && HB_IS_DATETIME( pItem2 ) )
-   {
-      if( HB_IS_TIMESTAMP( pItem1 ) && HB_IS_TIMESTAMP( pItem2 ) )
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian >
-                                          pItem2->item.asDateTime.julian ) ||
-                                        ( pItem1->item.asDateTime.julian ==
-                                          pItem2->item.asDateTime.julian &&
-                                          pItem1->item.asDateTime.time >=
-                                          pItem2->item.asDateTime.time );
-      else
-         pItem1->item.asLogical.value = ( pItem1->item.asDateTime.julian >=
-                                          pItem2->item.asDateTime.julian );
-      pItem1->type = HB_IT_LOGICAL;
-      hb_stackDec();
-   }
-   else if( HB_IS_LOGICAL( pItem1 ) && HB_IS_LOGICAL( pItem2 ) )
-   {
-      pItem1->item.asLogical.value = pItem1->item.asLogical.value ||
-                                     ! pItem2->item.asLogical.value;
-      hb_stackDec();
-   }
-   else if( hb_objOperatorCall( HB_OO_OP_GREATEREQUAL, pItem1, pItem1, pItem2, NULL ) )
-      hb_stackPop();
-
-   else
-   {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1076, NULL, ">=", 2, pItem1, pItem2 );
-
-      if( pResult )
-      {
-         hb_stackPop();
-         hb_itemMove( pItem1, pResult );
-         hb_itemRelease( pResult );
-      }
-   }
-}
+static void hb_vmLess( void )         { hb_vmCompare( 0 ); }
+static void hb_vmLessEqual( void )    { hb_vmCompare( 1 ); }
+static void hb_vmGreater( void )      { hb_vmCompare( 2 ); }
+static void hb_vmGreaterEqual( void ) { hb_vmCompare( 3 ); }
 
 static void hb_vmInstring( void )
 {

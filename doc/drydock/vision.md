@@ -102,6 +102,46 @@ not ship.
 For the full fracture analysis with grep-counted call sites and risk
 percentages, see [drydock-analysis.md](drydock-analysis.md#compatibility-fracture-map).
 
+### Extension API
+
+Drydock has three layers with distinct stability contracts:
+
+- **PRG level** — 100% compatible, forever. The Compatibility Covenant applies
+  here. PRG code compiles to pcode; it never touches the C API.
+- **dd_\* API** — New handle-based extension API. GC-safe by construction.
+  All object references are opaque handles (indices into a VM-managed table).
+  New extensions, contrib modules, and embedding applications use this.
+  See [DrydockAPI blueprint](../blueprints/DrydockAPI(SUBSYSTEM)/BRIEF.md).
+- **hb_\* API** — Transitional. The existing 433+ function C API continues to
+  work under constraints (objects pinned during access, non-moving allocation).
+  Deprecated for new code. Will eventually become thin wrappers around `dd_*`.
+
+This separation allows Drydock's VM internals (GC strategy, object layout,
+dispatch mechanism) to evolve freely while maintaining stable extension
+contracts. The handle-based `dd_*` API is the enabling prerequisite for
+moving GC, JIT compilation, and concurrent execution. See
+[JIT-GC Contract](jit-gc-contract.md) for the full integration design.
+
+### Macro Compiler (`&` operator)
+
+The `&` macro operator (`src/macro/`) is a runtime expression compiler
+inherited from Clipper (1985). It compiles strings to pcode at runtime —
+effectively `eval()` for xBase. It is **supported for backward compatibility**
+but is a legacy feature. Its grammar is frozen (67 rules, 36% of the main
+compiler) and will not be extended with new language features.
+
+Modern alternatives exist for every common `&` use case:
+
+| Instead of | Use |
+|-----------|-----|
+| `&varName := value` (dynamic variable) | `hHash[varName] := value` (hash table) |
+| `&funcName()` (dynamic function call) | `Do(funcName)` or `:Perform(cMethod)` |
+| `"Hello &name"` (string interpolation) | `hb_StrFormat("Hello %s", name)` |
+| `Type("expr")` (existence check) | Supported — no alternative yet |
+
+The JIT (LLVMBackend, Phase M) will not compile functions containing `&`
+macros — they remain in the interpreter. This is by design, not a limitation.
+
 ---
 
 ## Versioning

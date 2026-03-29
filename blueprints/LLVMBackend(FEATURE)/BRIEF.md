@@ -42,6 +42,11 @@ as C code, with the same optimization passes.
 - Type mapping: `HB_ITEM` → LLVM struct types with known layout
 - GC integration: stack maps for LLVM-compiled frames
 - Incremental: start with AOT for hot functions, expand to full-program compilation
+- **Macro compiler exclusion**: Functions containing `&` macro operators stay in
+  the interpreter (Tier 0). The JIT does not compile macro-containing functions.
+  The `&` operator is a runtime `eval()` that compiles arbitrary strings to
+  pcode — JIT-compiling around it provides no benefit and adds complexity.
+  This is the same approach V8 uses for JavaScript's `eval()`
 
 ---
 
@@ -52,6 +57,7 @@ as C code, with the same optimization passes.
 | PersistentAST (Phase E) | PLANNING | **Required** — LLVM IR emission needs AST, not pcode |
 | RegisterPcode (Phase K) | PLANNING | **Strongly recommended** — register IR maps cleanly to LLVM IR; stack pcode requires decompilation |
 | Optimizer (Phase G) | PLANNING | Recommended — pre-optimized AST produces cleaner LLVM IR |
+| DrydockAPI (Phase A1) | PLANNING | Recommended — handle-based API enables object layout optimization and clean stack maps; see [JIT-GC Contract](../../doc/drydock/jit-gc-contract.md) Sections 1, 5 |
 
 ## 4. Estimated Scope
 

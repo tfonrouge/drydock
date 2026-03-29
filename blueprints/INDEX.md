@@ -20,13 +20,14 @@
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
 | A0 | [DrydockObject](DrydockObject(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | -- (new Tier 1 root) |
-| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | -- (independent) |
+| A | [RefactorHvm](RefactorHvm(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (independent) |
 | B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | DrydockObject (done) |
-| B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | @tfonrouge | ScalarClasses Phase 2 |
+| A1 | [DrydockAPI](DrydockAPI(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | ScalarClasses (done) |
+| B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | ScalarClasses (done) |
 | C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
-| D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm Phase 3 (branch hints) |
+| D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | DrydockAPI + RefactorHvm Phase 3 |
 
-**Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, all scalar methods in C (no ENABLE TYPE CLASS ALL needed), extension method syntax (`FUNCTION STRING.method()`). Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
+**Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, all scalar methods in C (no ENABLE TYPE CLASS ALL needed), extension method syntax (`FUNCTION STRING.method()`). Handle-based extension API (`dd_*`) replaces raw pointer C API. Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
 
 ## Tier 2 — Build a Real Compiler (months 6-14)
 
@@ -76,3 +77,6 @@
 | ScalarClasses Phase 1 | 2026-03-27 | User-facing methods on all scalar types. 75 tests pass. `"hello":Upper()`, `(42):Abs()`, `{1,2,3}:Map()`, etc. |
 | DrydockObject | 2026-03-27 | Root class in C. `toString()`, `isScalar()`, `isNil()`, `valType()` on ANY value. 11 scalar classes always available. ddtest 4861/4861 pass. |
 | ScalarClasses Phase 2 | 2026-03-28 | 60 methods in C (54 scalar + 6 universal) — ENABLE TYPE CLASS ALL deprecated. Operators: `{1,2}+{3,4}`, `"abc"*3`. tscalar.prg stripped to stubs. |
+| ScalarClasses Phase 3 | 2026-03-28 | Benchmarks (int 20ms/1M, Upper 84ms/1M). Zero regression. ENABLE TYPE CLASS ALL deprecation note. STABLE. |
+| ExtensionMethods E.1 | 2026-03-28 | `EXTEND CLASS STRING WITH METHOD ... ACTION`. `__clsFindByName()` with STRING/NUMBER/BOOL aliases. Works in .hrb runtime. |
+| RefactorHvm R1a | 2026-03-29 | Factor 4 ordering comparisons into `hb_vmCompare()` — ~180 lines saved. ddtest 4861/4861. |

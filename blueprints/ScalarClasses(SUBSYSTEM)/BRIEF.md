@@ -129,10 +129,10 @@ Scalar classes use existing APIs (`hb_clsAdd()`, `hb_clsNew()`).
 
 ## Estimated Scope
 
-- **Phase 1**: DONE — user-facing methods in tscalar.prg (75 tests)
-- **Phase 1b**: DONE — DrydockObject root class + always-available scalar classes
-- **Phase 2** (5-7 days): Move all methods to C + add operators
-- **Phase 3** (2-3 days): Performance verification + cleanup + deprecation notes
+- **Phase 1**: DONE (2026-03-27) — user-facing methods in tscalar.prg (75 tests)
+- **Phase 1b**: DONE (2026-03-27) — DrydockObject root class + always-available scalar classes
+- **Phase 2**: DONE (2026-03-28) — 53 methods moved to C + 3 operators + tscalar.prg stripped
+- **Phase 3**: DONE (2026-03-28) — benchmarks, ENABLE deprecation, STABLE
 
 ---
 

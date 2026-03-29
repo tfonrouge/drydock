@@ -1,8 +1,11 @@
 # IMPLEMENTATION_PLAN -- RefactorHvm (SUBSYSTEM)
 
-## Phase 0: Dead Code Removal -- DONE (2026-03-27, `0ec787c`)
+## Phase 0: Dead Code Removal -- REVERTED (2026-03-27)
 
-733 lines removed. 12 dead functions + 1 `#if 0` block. ddtest 4861/4861 passed.
+Attempted in `0ec787c`, reverted in `6f6811b`. The 12 `hb_xvm*ThenInt*`
+functions appeared dead in source grep but ARE emitted by `gencc.c` in
+generated C code. They are NOT dead code — they are live in the `-gc2`
+compilation path. Phase 0 is cancelled.
 
 ---
 
@@ -13,11 +16,12 @@
 
 ### Steps
 
-- [ ] **R1a.1** Create `hb_vmCompare()` with comparison enum parameter.
-  Implement the shared cascade: STRING→NUMINT→NUMERIC→DATETIME→LOGICAL→objOperatorCall.
-- [ ] **R1a.2** Rewrite `hb_vmLess`, `hb_vmLessEqual`, `hb_vmGreater`,
-  `hb_vmGreaterEqual` as thin wrappers calling `hb_vmCompare()`.
-- [ ] **R1a.3** Verify: `ddtest` — 4861/4861 pass.
+- [x] **R1a.1** Create `hb_vmCompare()` with `iMode` parameter (0=Less, 1=LessEqual,
+  2=Greater, 3=GreaterEqual). Shared cascade with static lookup tables for
+  OO operator constants, error codes, and operator strings.
+- [x] **R1a.2** Rewrite `hb_vmLess`, `hb_vmLessEqual`, `hb_vmGreater`,
+  `hb_vmGreaterEqual` as one-line wrappers calling `hb_vmCompare()`.
+- [x] **R1a.3** Verify: `ddtest` — 4861/4861 pass.
 - [ ] **R1b.1** Create `hb_vmIncDec()` with direction parameter (+1/-1).
   Implement shared cascade: INTEGER→LONG→DOUBLE→DATETIME→objOperatorCall.
 - [ ] **R1b.2** Rewrite `hb_vmInc`, `hb_vmDec` as wrappers.

@@ -143,13 +143,29 @@ macro compiler integration, and class system interaction.
 |-------|--------|-------------|
 | H.1 | 2 weeks | Grammar: MODULE/IMPORT/EXPORT keyword recognition and parsing |
 | H.2 | 3 weeks | Symbol table: compiler emits qualified names; dynsym handles dotted names |
-| H.3 | 2 weeks | Macro compiler: lexer accepts dots; namespace context in `HB_MACRO` |
+| H.3 | 2 weeks | Macro compiler: lexer accepts dots; namespace context in `HB_MACRO`. Minimal change — macro grammar is frozen, only the lexer and symbol resolution are touched |
 | H.4 | 3 weeks | Cross-module resolution: IMPORT verification using persistent AST |
 | H.5 | 2 weeks | Class system: qualified class names, FRIEND across modules |
 | H.6 | 1 week | Testing, `.hbx` format evolution, documentation |
 | **Total** | **~13 weeks** | |
 
-## 6. Compatibility
+## 6. Future Extension: Foreign Function Interface
+
+`IMPORT FOREIGN` is a planned extension of the module syntax for calling
+external C libraries directly from PRG without writing C wrapper code:
+
+```harbour
+IMPORT FOREIGN "libsqlite3"
+   FUNCTION sqlite3_open(cPath AS CSTRING, @pDB AS POINTER) AS INTEGER
+   FUNCTION sqlite3_exec(pDB AS POINTER, cSQL AS CSTRING, ...) AS INTEGER
+ENDIMPORT
+```
+
+This depends on GradualTyping (Phase F) for meaningful `AS` type annotations
+and DrydockAPI (Phase A1) for the runtime handle interface. Not scoped as part
+of ModuleSystem — it will emerge naturally when the infrastructure is ready.
+
+## 7. Compatibility
 
 See [COMPAT.md](COMPAT.md) for full fracture analysis. Summary:
 

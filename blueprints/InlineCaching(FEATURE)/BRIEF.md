@@ -60,8 +60,14 @@ class identity is unchanged by namespace qualification.
 
 | Dependency | Status | Notes |
 |------------|--------|-------|
-| ScalarClasses (Phase B) | PLANNING | Recommended — scalar classes add more dispatch sites that benefit from caching |
+| ScalarClasses (Phase B) | STABLE | Recommended — scalar classes add more dispatch sites that benefit from caching |
 | ComputedGoto (Phase C) | PLANNING | Recommended — threaded dispatch reduces overhead per cached call |
+
+**GC integration note**: IC slots that cache class/method references must be
+registered as **weak GC roots** via `dd_weak_handle()` (from DrydockAPI). If a
+cached class is collected, the weak handle becomes nil and the IC transitions
+to megamorphic state. This prevents inline caches from keeping dead classes
+alive. See [JIT-GC Contract](../../doc/drydock/jit-gc-contract.md) Section 4.
 
 ## 4. Estimated Scope
 

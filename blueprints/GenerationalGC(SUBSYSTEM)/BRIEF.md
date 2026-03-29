@@ -226,8 +226,9 @@ Expected pause: <1ms for typical nursery sizes.
 
 | Dependency | Status | Notes |
 |------------|--------|-------|
+| DrydockAPI (Phase A1) | PLANNING | **Required** — handle-based API enables moving young gen; see [JIT-GC Contract](../../doc/drydock/jit-gc-contract.md) Section 2 for write barrier design |
 | RefactorHvm Phase 3 (branch hints) | PLANNING | `HB_LIKELY`/`HB_UNLIKELY` macros needed for write barrier fast path |
-| ScalarClasses | PLANNING | Not required, but scalar class dispatch may add new pointer stores that need barriers |
+| ScalarClasses | STABLE | Scalar class dispatch may add new pointer stores that need barriers |
 
 **Blocks**: RemoveGIL (Tier 3) — generational GC with per-thread nurseries is a
 prerequisite for removing the global VM lock.
