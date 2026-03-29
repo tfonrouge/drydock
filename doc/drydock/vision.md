@@ -38,6 +38,11 @@ For the full technical analysis, see [drydock-analysis.md](drydock-analysis.md).
 
 ## Workstreams
 
+> **Note:** For current status, phasing, and dependencies, see
+> [blueprints/INDEX.md](../../blueprints/INDEX.md) — the authoritative
+> status board. The workstreams below describe the original vision;
+> INDEX.md tracks what's DONE, ACTIVE, and PLANNED.
+
 ### SUBSYSTEM (deep structural changes)
 
 | # | Workstream | What Changes | Effort |

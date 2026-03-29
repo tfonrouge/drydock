@@ -1,1 +1,1 @@
-ACTIVE: Z.0-Z.3 done (2026-03-27). Full two-phase bootstrap works. Minor ddtest divergence under investigation.
+ACTIVE: Z.0-Z.3 done (2026-03-27). Full two-phase bootstrap works. Make-built ddtest 4861/4861 pass. Zig-built ddtest has minor Array(-1) error format divergence (cosmetic, non-blocking).

@@ -8,7 +8,7 @@
 | **Mode** | FEATURE |
 | **Tier** | 1 — Foundation |
 | **Component** | Compiler (`src/compiler/`) + VM (`src/vm/classes.c`) |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 

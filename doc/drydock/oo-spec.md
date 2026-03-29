@@ -81,7 +81,7 @@ scalar types. A debugger can't call `toString()` on an arbitrary value.
 **Impact**: Every tool that needs string representation of values (debugger, logger,
 error handler, REPL) must implement its own type-switch cascade.
 
-**Resolution**: DrydockObject (Tier 1, FOCUSED)
+**Resolution**: DrydockObject (Tier 1, STABLE)
 
 ### 2.2 Scalar Classes Require Explicit Linking
 
@@ -535,19 +535,20 @@ Externally, every value responds to messages.
 
 | Gap / Feature | Blueprint | Tier | Status |
 |---------------|-----------|------|--------|
-| Root class (DrydockObject) | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
-| toString / className / isScalar | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
-| Always-available scalar classes | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | FOCUSED |
-| compareTo / isComparable | DrydockObject Phase 2 | 1 | Planned |
-| equals / hashCode / clone | DrydockObject Phase 2 | 1 | Planned |
-| isProperty / isReadOnly reflection | DrydockObject Phase 2 | 1 | Planned |
-| dispose / WITH...END WITH | DrydockObject Phase 2 | 1 | Planned |
-| User-facing scalar methods | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | Phase 1a done |
-| Operator routing via scalar classes | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | Phase 2 planned |
+| Root class (DrydockObject) | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) | 1 | **STABLE** |
+| toString / compareTo / isComparable | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) D.1-D.6 | 1 | **Done** |
+| Always-available scalar classes | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) D.3 | 1 | **Done** |
+| compareTo / isComparable | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) D.6 | 1 | **Done** |
+| DDClass reflection (classOf) | [DrydockObject](../blueprints/DrydockObject(SUBSYSTEM)/BRIEF.md) D.8 | 1 | **Done** |
+| equals / hashCode / clone | DrydockObject future phase | 1 | Planned |
+| isProperty / isReadOnly reflection | DDClass methods (via classOf) | 1 | Planned |
+| dispose / WITH...END WITH | DrydockObject future phase | 1 | Planned |
+| User-facing scalar methods | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | **STABLE** |
+| Scalar operators ({1,2}+{3,4}, "abc"*3) | [ScalarClasses](../blueprints/ScalarClasses(SUBSYSTEM)/BRIEF.md) | 1 | **Done** |
 | PROPERTY VALIDATE blocks | Standalone or hbclass.ch | 1 | Planned |
 | Computed properties (GET/SET) | Standalone or hbclass.ch | 1 | Planned |
-| EXTEND CLASS syntax | ExtensionMethods | 1 | Planned |
-| Runtime type introspection | Reflection | 1 | Planned |
+| EXTEND CLASS syntax | [ExtensionMethods](../blueprints/ExtensionMethods(FEATURE)/BRIEF.md) E.1-E.2 | 1 | **Done** |
+| Runtime type introspection | DDClass via classOf() (D.8) | 1 | **Done** |
 | Abstract classes / interfaces | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
 | Type declaration enforcement | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |
 | Compile-time scope checking | [GradualTyping](../blueprints/GradualTyping(FEATURE)/BRIEF.md) | 2 | Planned |

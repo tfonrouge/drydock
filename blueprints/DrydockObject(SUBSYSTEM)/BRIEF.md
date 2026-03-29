@@ -47,17 +47,38 @@ available, no linking constraints, no user setup required.
 A class created in pure C during `hb_clsInit()`. Every class in the system
 inherits from it — scalar classes, HBObject, and user-defined classes.
 
-**Universal methods (always available on ANY value):**
+**DrydockObject class methods (inherited by all classes):**
 
 | Method | Returns | Purpose |
 |--------|---------|---------|
 | `toString()` | String | Human-readable representation of any value |
+| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable |
+| `isComparable()` | Logical | `.T.` for types that support ordering |
+
+**Default messages (always available, NOT on class method table):**
+
+| Message | Returns | Purpose |
+|---------|---------|---------|
 | `className()` | String | Type/class name ("CHARACTER", "NUMERIC", etc.) |
+| `classH()` | Numeric | Class handle (integer) |
+| `classSel()` | Array | Method selector names |
 | `isScalar()` | Logical | `.T.` for scalar types, `.F.` for user objects |
 | `isNil()` | Logical | `.T.` only for NIL values |
 | `valType()` | String | Traditional ValType() as a method ("C", "N", etc.) |
-| `compareTo(other)` | Numeric/NIL | -1, 0, or 1 for ordered types; NIL for incomparable |
-| `isComparable()` | Logical | `.T.` for types that support ordering (string, numeric, date, logical) |
+| `classOf()` | DDClass | Class reflection object (singleton per class) |
+
+**DDClass reflection (via `classOf()`):**
+
+| Method | Returns | Purpose |
+|--------|---------|---------|
+| `classOf():name()` | String | Class name |
+| `classOf():methods()` | Array | All method names |
+| `classOf():super()` | DDClass/NIL | Parent class object |
+| `classOf():data()` | Array | DATA field names |
+| `classOf():handle()` | Numeric | Class handle |
+| `classOf():ancestors()` | Array | Parent chain as DDClass objects |
+| `classOf():properties()` | Array | PROPERTY field names |
+| `classOf():isLocked()` | Logical | Class modification lock status |
 
 ### Scalar Type Classes — Always Registered
 

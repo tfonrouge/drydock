@@ -7,7 +7,7 @@
 | **Name** | RefactorHvm |
 | **Mode** | SUBSYSTEM |
 | **Component** | VM — `src/vm/hvm.c`, `include/hbxvm.h` |
-| **Status** | PLANNING |
+| **Status** | STABLE |
 | **Supersedes** | HvmOperatorDedup(PATCH) |
 
 ---

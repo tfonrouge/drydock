@@ -1,1 +1,1 @@
-STABLE: H.1 (v3 format), H.3 (embedding), H.4 (-dp disassembler), H.5 (INIT auto-exec) done. H.2 (bundling) deferred.
+STABLE: H.1 (v3 format), H.3 (embedding), H.4 (-dp disassembler), H.5 (INIT auto-exec) done. H.2 (bundling), H.4 -gejson/--hrb-bundle/--hrb-embed CLI flags deferred.

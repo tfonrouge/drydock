@@ -49,8 +49,9 @@ function. No tscalar.prg required. No `ENABLE TYPE CLASS ALL` required.
 | LOGICAL | IsTrue, Toggle | Trivial C |
 | NIL, BLOCK, SYMBOL, POINTER | (minimal — toString covers it) | Already in DrydockObject |
 
-**60 methods** (54 scalar + 6 DrydockObject universal), ~83% are thin C
-wrappers around existing RTL functions.
+**56 scalar registrations** (53 methods + 3 operators), plus 3 DrydockObject
+behavior methods (toString, compareTo, isComparable) and 9 DDClass reflection
+methods. ~83% are thin C wrappers around existing RTL functions.
 
 ### Scalar Operators (cross-type, currently-erroring cases)
 

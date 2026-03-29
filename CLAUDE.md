@@ -142,7 +142,8 @@ Each operator (e.g., `hb_vmPlus()` in `hvm.c`) is a cascade of type checks: inte
 | `doc/codestyl.txt` | Full C coding standards (summarized below) |
 | `doc/vm.txt` | VM architecture reference |
 | `doc/pcode.txt` | Pcode bytecode model |
-| `blueprints/` | Per-workstream detailed blueprints (when created) |
+| `blueprints/INDEX.md` | **Primary status board** — all workstreams, tiers, completion tracking |
+| `blueprints/<Name>(MODE)/` | Per-workstream blueprints: `BRIEF.md` (scope), `IMPLEMENTATION_PLAN.md` (steps with [x] checkboxes), `.blueprint-status` (one-line status) |
 
 ## Coding Conventions
 
