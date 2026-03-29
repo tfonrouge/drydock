@@ -83,3 +83,6 @@
 | RefactorHvm R1b | 2026-03-29 | Factor Inc/Dec into `hb_vmIncDec(iDir)` — ~60 lines saved. |
 | RefactorHvm Phase 3 | 2026-03-29 | `HB_LIKELY`/`HB_UNLIKELY` branch hints in hbdefs.h. Hot paths annotated in hvm.c. |
 | DrydockObject Phase 2 | 2026-03-29 | `compareTo()` (-1/0/1/NIL) and `isComparable()` on any value. 16 tests pass. |
+| OO Structure Prep | 2026-03-29 | CLASS.uiVersion, HB_U64 nOpFlags, DD_METHOD_* macros for InlineCaching + RegisterPcode readiness. |
+| HRBModern H.5 | 2026-03-29 | INIT procedures auto-execute on .hrb load. Extension methods from INIT work. |
+| HRBModern H.3 | 2026-03-29 | `hrbembed` tool generates C embedding from .hrb files. Standalone executables without per-function C generation. |

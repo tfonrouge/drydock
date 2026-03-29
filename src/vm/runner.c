@@ -566,6 +566,13 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
 
             /* initialize static variables */
             hb_hrbInitStatic( pHrbBody );
+
+            /* Drydock H.5: auto-execute INIT procedures on load.
+             * Matches C path behavior where INIT PROCEDURE runs at
+             * module load time via #pragma startup / data segment init.
+             */
+            if( pHrbBody->fInit )
+               hb_hrbInit( pHrbBody, 0, NULL );
          }
          hb_vmUnlockModuleSymbols();
       }
