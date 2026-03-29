@@ -1686,6 +1686,15 @@ typedef int           HB_COLOR;
 #define HB_ISFIRSTIDCHAR( c )   ( HB_ISALPHA( c ) || ( c ) == '_' )
 #define HB_ISNEXTIDCHAR( c )    ( HB_ISFIRSTIDCHAR(c) || HB_ISDIGIT( c ) )
 
+/* Branch prediction hints for hot paths [drydock] */
+#if defined( __GNUC__ ) || defined( __clang__ )
+#  define HB_LIKELY( x )    __builtin_expect( !!( x ), 1 )
+#  define HB_UNLIKELY( x )  __builtin_expect( !!( x ), 0 )
+#else
+#  define HB_LIKELY( x )    ( x )
+#  define HB_UNLIKELY( x )  ( x )
+#endif
+
 #include "hbtrace.h"
 
 #endif /* HB_DEFS_H_ */

@@ -3281,7 +3281,7 @@ static void hb_vmPlus( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
 {
    HB_TRACE( HB_TR_DEBUG, ( "hb_vmPlus(%p,%p,%p)", ( void * ) pResult, ( void * ) pItem1, ( void * ) pItem2 ) );
 
-   if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
+   if( HB_LIKELY( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) ) )
    {
       HB_MAXINT nNumber1 = HB_ITEM_GET_NUMINTRAW( pItem1 );
       HB_MAXINT nNumber2 = HB_ITEM_GET_NUMINTRAW( pItem2 );
@@ -3290,7 +3290,7 @@ static void hb_vmPlus( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
       if( HB_IS_COMPLEX( pResult ) )
          hb_itemClear( pResult );
 
-      if( nNumber2 >= 0 ? nResult >= nNumber1 : nResult < nNumber1 )
+      if( HB_LIKELY( nNumber2 >= 0 ? nResult >= nNumber1 : nResult < nNumber1 ) )
       {
          HB_ITEM_PUT_NUMINTRAW( pResult, nResult );
       }
@@ -3381,7 +3381,7 @@ static void hb_vmPlus( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
       else
          hb_itemPutDL( pResult, hb_itemGetNL( pItem1 ) + hb_itemGetDL( pItem2 ) );
    }
-   else if( ! hb_objOperatorCall( HB_OO_OP_PLUS, pResult, pItem1, pItem2, NULL ) )
+   else if( HB_UNLIKELY( ! hb_objOperatorCall( HB_OO_OP_PLUS, pResult, pItem1, pItem2, NULL ) ) )
    {
       PHB_ITEM pSubst = hb_errRT_BASE_Subst( EG_ARG, 1081, NULL, "+", 2, pItem1, pItem2 );
 
@@ -3397,7 +3397,7 @@ static void hb_vmMinus( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
 {
    HB_TRACE( HB_TR_DEBUG, ( "hb_vmMinus(%p,%p,%p)", ( void * ) pResult, ( void * ) pItem1, ( void * ) pItem2 ) );
 
-   if( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) )
+   if( HB_LIKELY( HB_IS_NUMINT( pItem1 ) && HB_IS_NUMINT( pItem2 ) ) )
    {
       HB_MAXINT nNumber1 = HB_ITEM_GET_NUMINTRAW( pItem1 );
       HB_MAXINT nNumber2 = HB_ITEM_GET_NUMINTRAW( pItem2 );
@@ -3680,44 +3680,49 @@ static void hb_vmPower( PHB_ITEM pResult, PHB_ITEM pItem1, PHB_ITEM pItem2 )
    }
 }
 
-static void hb_vmInc( PHB_ITEM pItem )
+/* Unified increment/decrement — replaces 2 mirror-image functions.
+ * iDir: +1 for increment, -1 for decrement. [drydock]
+ */
+static void hb_vmIncDec( PHB_ITEM pItem, int iDir )
 {
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmInc(%p)", ( void * ) pItem ) );
+   HB_TRACE( HB_TR_DEBUG, ( "hb_vmIncDec(%p,%d)", ( void * ) pItem, iDir ) );
 
-   if( HB_IS_NUMINT( pItem ) )
+   if( HB_LIKELY( HB_IS_NUMINT( pItem ) ) )
    {
       if( HB_IS_INTEGER( pItem ) )
       {
-         if( pItem->item.asInteger.value < HB_VMINT_MAX )
+         if( ( iDir > 0 ) ? ( pItem->item.asInteger.value < HB_VMINT_MAX )
+                          : ( pItem->item.asInteger.value > HB_VMINT_MIN ) )
          {
             pItem->type = HB_IT_INTEGER;
-            pItem->item.asInteger.value++;
+            pItem->item.asInteger.value += iDir;
             pItem->item.asInteger.length = HB_INT_EXPLENGTH( pItem->item.asInteger.value );
          }
          else
          {
-#if HB_VMINT_MAX < HB_VMLONG_MAX
+#if ( HB_VMINT_MAX < HB_VMLONG_MAX ) || ( HB_VMINT_MIN > HB_VMLONG_MIN )
             pItem->type = HB_IT_LONG;
-            pItem->item.asLong.value = ( HB_MAXINT ) pItem->item.asInteger.value + 1;
+            pItem->item.asLong.value = ( HB_MAXINT ) pItem->item.asInteger.value + iDir;
             pItem->item.asLong.length = HB_LONG_EXPLENGTH( pItem->item.asLong.value );
 #else
             pItem->type = HB_IT_DOUBLE;
-            pItem->item.asDouble.value = ( double ) pItem->item.asInteger.value + 1;
+            pItem->item.asDouble.value = ( double ) pItem->item.asInteger.value + iDir;
             pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
             pItem->item.asDouble.decimal = 0;
 #endif
          }
       }
-      else if( pItem->item.asLong.value < HB_VMLONG_MAX )
+      else if( ( iDir > 0 ) ? ( pItem->item.asLong.value < HB_VMLONG_MAX )
+                             : ( pItem->item.asLong.value > HB_VMLONG_MIN ) )
       {
          pItem->type = HB_IT_LONG;
-         pItem->item.asLong.value++;
+         pItem->item.asLong.value += iDir;
          pItem->item.asLong.length = HB_LONG_EXPLENGTH( pItem->item.asLong.value );
       }
       else
       {
          pItem->type = HB_IT_DOUBLE;
-         pItem->item.asDouble.value = ( double ) pItem->item.asLong.value + 1;
+         pItem->item.asDouble.value = ( double ) pItem->item.asLong.value + iDir;
          pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
          pItem->item.asDouble.decimal = 0;
       }
@@ -3725,18 +3730,21 @@ static void hb_vmInc( PHB_ITEM pItem )
    else if( HB_IS_DOUBLE( pItem ) )
    {
       pItem->type = HB_IT_DOUBLE;
-      pItem->item.asDouble.value++;
+      pItem->item.asDouble.value += iDir;
       pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
    }
    else if( HB_IS_DATETIME( pItem ) )
    {
       pItem->type &= ~HB_IT_DEFAULT;
-      pItem->item.asDateTime.julian++;
+      pItem->item.asDateTime.julian += iDir;
    }
-   else if( ! hb_objOperatorCall( HB_OO_OP_INC, pItem, pItem, NULL, NULL ) )
+   else if( ! hb_objOperatorCall( iDir > 0 ? HB_OO_OP_INC : HB_OO_OP_DEC,
+                                  pItem, pItem, NULL, NULL ) )
    {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1086, NULL, "++", 1, pItem );
-
+      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG,
+                                              iDir > 0 ? 1086 : 1087, NULL,
+                                              iDir > 0 ? "++" : "--",
+                                              1, pItem );
       if( pResult )
       {
          hb_itemMove( pItem, pResult );
@@ -3745,70 +3753,8 @@ static void hb_vmInc( PHB_ITEM pItem )
    }
 }
 
-static void hb_vmDec( PHB_ITEM pItem )
-{
-   HB_TRACE( HB_TR_DEBUG, ( "hb_vmDec(%p)", ( void * ) pItem ) );
-
-   if( HB_IS_NUMINT( pItem ) )
-   {
-      if( HB_IS_INTEGER( pItem ) )
-      {
-         if( pItem->item.asInteger.value > HB_VMINT_MIN )
-         {
-            pItem->type = HB_IT_INTEGER;
-            pItem->item.asInteger.value--;
-            pItem->item.asInteger.length = HB_INT_EXPLENGTH( pItem->item.asInteger.value );
-         }
-         else
-         {
-#if HB_VMINT_MIN > HB_VMLONG_MIN
-            pItem->type = HB_IT_LONG;
-            pItem->item.asLong.value = ( HB_MAXINT ) pItem->item.asInteger.value - 1;
-            pItem->item.asLong.length = HB_LONG_EXPLENGTH( pItem->item.asLong.value );
-#else
-            pItem->type = HB_IT_DOUBLE;
-            pItem->item.asDouble.value = ( double ) pItem->item.asInteger.value - 1;
-            pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
-            pItem->item.asDouble.decimal = 0;
-#endif
-         }
-      }
-      else if( pItem->item.asLong.value > HB_VMLONG_MIN )
-      {
-         pItem->type = HB_IT_LONG;
-         pItem->item.asLong.value--;
-         pItem->item.asLong.length = HB_LONG_EXPLENGTH( pItem->item.asLong.value );
-      }
-      else
-      {
-         pItem->type = HB_IT_DOUBLE;
-         pItem->item.asDouble.value = ( double ) pItem->item.asLong.value - 1;
-         pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
-         pItem->item.asDouble.decimal = 0;
-      }
-   }
-   else if( HB_IS_DOUBLE( pItem ) )
-   {
-      pItem->type = HB_IT_DOUBLE;
-      pItem->item.asDouble.value--;
-      pItem->item.asDouble.length = HB_DBL_LENGTH( pItem->item.asDouble.value );
-   }
-   else if( HB_IS_DATETIME( pItem ) )
-   {
-      pItem->type &= ~HB_IT_DEFAULT;
-      pItem->item.asDateTime.julian--;
-   }
-   else if( ! hb_objOperatorCall( HB_OO_OP_DEC, pItem, pItem, NULL, NULL ) )
-   {
-      PHB_ITEM pResult = hb_errRT_BASE_Subst( EG_ARG, 1087, NULL, "--", 1, pItem );
-
-      if( pResult )
-      {
-         hb_itemMove( pItem, pResult );
-         hb_itemRelease( pResult );
-      }
-   }
-}
+static void hb_vmInc( PHB_ITEM pItem ) { hb_vmIncDec( pItem, 1 ); }
+static void hb_vmDec( PHB_ITEM pItem ) { hb_vmIncDec( pItem, -1 ); }
 
 static void hb_vmFuncPtr( void )  /* pushes a function address pointer. Removes the symbol from the stack */
 {
