@@ -9,7 +9,7 @@
 | **Tier** | 1 — Fix the Foundation |
 | **Phase** | C |
 | **Component** | VM — `src/vm/hvm.c` |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 

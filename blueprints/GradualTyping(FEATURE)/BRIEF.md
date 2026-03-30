@@ -9,7 +9,7 @@
 | **Tier** | 2 — Build a Real Compiler |
 | **Phase** | F |
 | **Component** | Compiler — `src/compiler/`, VM — `src/vm/hvm.c` |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 

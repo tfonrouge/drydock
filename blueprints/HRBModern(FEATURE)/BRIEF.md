@@ -8,7 +8,7 @@
 | **Mode** | FEATURE |
 | **Tier** | 0 — Build Infrastructure |
 | **Component** | Compiler — `src/compiler/genhrb.c`, VM — `src/vm/runner.c`, CLI — `src/main/` |
-| **Status** | ACTIVE |
+| **Status** | STABLE |
 
 ---
 

@@ -9,7 +9,7 @@
 | **Tier** | 2 — Build a Real Compiler |
 | **Phase** | E |
 | **Component** | Compiler — `src/compiler/` |
-| **Status** | PLANNING |
+| **Status** | ACTIVE |
 
 ---
 
