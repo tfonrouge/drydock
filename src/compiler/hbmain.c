@@ -2005,6 +2005,10 @@ static PHB_HFUNC hb_compFunctionKill( HB_COMP_DECL, PHB_HFUNC pFunc )
    if( pFunc->pCode )
       hb_xfree( pFunc->pCode );
 
+   /* Drydock PersistentAST: free retained AST nodes [drydock E.1] */
+   if( pFunc->pBodyAST )
+      hb_compExprFreeAST( pFunc->pBodyAST );
+
    hb_xfree( pFunc );
 
    return pNext;

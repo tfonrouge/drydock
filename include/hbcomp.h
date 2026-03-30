@@ -312,6 +312,7 @@ extern void hb_compStripFuncLines( HB_COMP_DECL, PHB_HFUNC pFunc );
 extern void hb_compGenCCode( HB_COMP_DECL, PHB_FNAME );      /* generates the C language output */
 extern void hb_compGenPortObj( HB_COMP_DECL, PHB_FNAME );    /* generates the portable objects */
 extern void hb_compGenDis( HB_COMP_DECL );                  /* pcode disassembly output (-dp) [drydock] */
+extern void hb_compExprFreeAST( PHB_EXPR pExpr );           /* free retained AST nodes [drydock E.1] */
 
 extern void hb_compGenBufPortObj( HB_COMP_DECL, HB_BYTE ** pBufPtr, HB_SIZE * pnSize ); /* generates the portable objects to memory buffer */
 

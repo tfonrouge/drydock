@@ -33,7 +33,7 @@
 
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
-| E | [PersistentAST](PersistentAST(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | -- (Tier 2 root) |
+| E | [PersistentAST](PersistentAST(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (Tier 2 root) |
 | F | [GradualTyping](GradualTyping(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
 | G | [Optimizer](Optimizer(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | PersistentAST |
 | H | [ModuleSystem](ModuleSystem(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
@@ -92,3 +92,5 @@
 | ExtensionMethods E.2 | 2026-03-29 | Class name aliases: `EXTEND CLASS STRING` → CHARACTER, NUMBER → NUMERIC, BOOL → LOGICAL. |
 | Reflection (methods) | 2026-03-29 | `methods()` registered on DrydockObject — returns array of method names for any value. |
 | DrydockObject D.8 | 2026-03-29 | DDClass — class reflection objects with singletons. `classOf():name()`, `:methods()`, `:super()`, `:data()`. DrydockObject reduced to 3 behavior methods. |
+| ComputedGoto Phase 1 | 2026-03-29 | Dispatch table + 182 opcode labels. Foundation for threaded dispatch. |
+| PersistentAST E.1 | 2026-03-29 | AST retention foundation: pBodyAST field on HB_HFUNC, retain-on-dealloc, bulk cleanup. OFF by default. |

@@ -508,6 +508,8 @@ typedef struct _HB_HFUNC
    HB_BYTE *    pCode;                    /* pointer to a memory block where pcode is stored */
    HB_SIZE      nPCodeSize;               /* total memory size for pcode */
    HB_SIZE      nPCodePos;                /* actual pcode offset */
+   PHB_EXPR     pBodyAST;                 /* retained AST statement list (PersistentAST Phase E) [drydock] */
+   PHB_EXPR     pBodyASTLast;             /* tail pointer for O(1) append [drydock] */
    HB_SIZE *    pNOOPs;                   /* pointer to the NOOP array */
    HB_SIZE *    pJumps;                   /* pointer to the Jumps array */
    HB_SIZE      nNOOPs;                   /* NOOPs Counter */
@@ -832,6 +834,7 @@ typedef struct _HB_COMP
    HB_BOOL           fPPO;                /* flag indicating, is .ppo output needed */
    HB_BOOL           fPPT;                /* flag indicating, is .ppt output needed */
    HB_BOOL           fPCodeDis;           /* pcode disassembly output (-dp) [drydock] */
+   HB_BOOL           fRetainAST;          /* retain AST after pcode emit (PersistentAST Phase E) [drydock] */
    HB_BOOL           fLineNumbers;        /* holds if we need pcodes with line numbers */
    HB_BOOL           fAnyWarning;         /* holds if there was any warning during the compilation process */
    HB_BOOL           fAutoMemvarAssume;   /* holds if undeclared variables are automatically assumed MEMVAR (-a)*/

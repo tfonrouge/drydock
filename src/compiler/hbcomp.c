@@ -70,6 +70,7 @@ static void hb_compExprDealloc( HB_COMP_DECL, PHB_EXPR pExpr )
    {
       PHB_EXPRLST pExpItm = ( PHB_EXPRLST ) pExpr;
 
+      /* Remove from the circular tracking list */
       pExpItm->pNext->pPrev = pExpItm->pPrev;
       pExpItm->pPrev->pNext = pExpItm->pNext;
       if( pExpItm == HB_COMP_PARAM->pExprLst )
@@ -79,7 +80,34 @@ static void hb_compExprDealloc( HB_COMP_DECL, PHB_EXPR pExpr )
          else
             HB_COMP_PARAM->pExprLst = pExpItm->pNext;
       }
-      hb_xfree( pExpItm );
+
+      /* Drydock PersistentAST: when fRetainAST is on, don't free —
+       * chain into current function's pBodyAST for post-processing.
+       * The node stays allocated; bulk cleanup happens at function
+       * finalization via hb_compExprFreeAll(). [drydock E.1]
+       */
+      if( HB_COMP_PARAM->fRetainAST )
+      {
+         PHB_HFUNC pFunc = HB_COMP_PARAM->functions.pLast;
+         if( pFunc )
+         {
+            pExpr->pNext = NULL;
+            if( pFunc->pBodyASTLast )
+            {
+               pFunc->pBodyASTLast->pNext = pExpr;
+               pFunc->pBodyASTLast = pExpr;
+            }
+            else
+            {
+               pFunc->pBodyAST = pExpr;
+               pFunc->pBodyASTLast = pExpr;
+            }
+         }
+         else
+            hb_xfree( pExpItm );
+      }
+      else
+         hb_xfree( pExpItm );
    }
    else
       pExpr->ExprType = HB_ET_NONE;
@@ -136,6 +164,20 @@ static void hb_compExprLstDealloc( HB_COMP_DECL )
          hb_xfree( pFree );
       }
       while( pExp != pExpItm );
+   }
+}
+
+/* Drydock PersistentAST: Free all retained AST nodes for a function.
+ * Called at function finalization when fRetainAST was active. [drydock E.1]
+ */
+void hb_compExprFreeAST( PHB_EXPR pExpr )
+{
+   while( pExpr )
+   {
+      PHB_EXPR pNext = pExpr->pNext;
+      PHB_EXPRLST pExpItm = ( PHB_EXPRLST ) pExpr;
+      hb_xfree( pExpItm );
+      pExpr = pNext;
    }
 }
 
