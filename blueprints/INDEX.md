@@ -24,7 +24,7 @@
 | B | [ScalarClasses](ScalarClasses(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :green_circle: STABLE | @tfonrouge | DrydockObject (done) |
 | A1 | [DrydockAPI](DrydockAPI(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | @tfonrouge | ScalarClasses (done) |
 | B+ | [ExtensionMethods](ExtensionMethods(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | ScalarClasses (done) |
-| C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | RefactorHvm (recommended) |
+| C | [ComputedGoto](ComputedGoto(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | RefactorHvm (done) |
 | D | [GenerationalGC](GenerationalGC(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | DrydockAPI + RefactorHvm Phase 3 |
 
 **Deliverable**: Every value is an object — DrydockObject root class, toString() on any value, all scalar methods in C (no ENABLE TYPE CLASS ALL needed), extension method syntax (`FUNCTION STRING.method()`). Handle-based extension API (`dd_*`) replaces raw pointer C API. Strings handle UTF-8. VM dispatches 5-15% faster. GC pauses < 1ms.
