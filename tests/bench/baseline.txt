@@ -19,4 +19,4 @@ oo_tostring	164
 string_concat	22	
 string_substr	55	
 string_upper_func	21	
-string_upper_method	45	
+string_upper_method	45

@@ -4515,6 +4515,17 @@ static int hb_compCompile( HB_COMP_DECL, const char * szPrg, const char * szBuff
          if( HB_COMP_PARAM->fRetainAST )
          {
             PHB_HFUNC pFunc = HB_COMP_PARAM->functions.pFirst;
+
+            /* Phase E.2: resolve variable references before printing */
+            while( pFunc )
+            {
+               if( ( pFunc->funFlags & HB_FUNF_FILE_DECL ) == 0 )
+                  hb_compASTResolveSymbols( pFunc );
+               pFunc = pFunc->pNext;
+            }
+
+            /* Print AST with resolved symbols */
+            pFunc = HB_COMP_PARAM->functions.pFirst;
             fprintf( stdout, "; Drydock AST dump: %s\n\n",
                      HB_COMP_PARAM->szFile ? HB_COMP_PARAM->szFile : "(unknown)" );
             while( pFunc )

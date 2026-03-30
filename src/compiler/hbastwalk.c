@@ -306,6 +306,11 @@ static HB_BOOL hb_compASTPrintVisitor( PHB_EXPR pExpr, void * cargo )
          fprintf( pCargo->yyc, " %s", pExpr->value.asLogical ? ".T." : ".F." );
          break;
       case HB_ET_VARIABLE:
+         fprintf( pCargo->yyc, " %s", pExpr->value.asSymbol.name ?
+                  pExpr->value.asSymbol.name : "?" );
+         if( pExpr->pSymbol )
+            fprintf( pCargo->yyc, " [resolved→%s]", pExpr->pSymbol->szName );
+         break;
       case HB_ET_FUNNAME:
          fprintf( pCargo->yyc, " %s", pExpr->value.asSymbol.name ?
                   pExpr->value.asSymbol.name : "?" );
@@ -356,4 +361,86 @@ void hb_compASTPrint( PHB_HFUNC pFunc, FILE * yyc )
       fprintf( yyc, "  (no AST retained)\n" );
 
    fprintf( yyc, "\n" );
+}
+
+
+/* ================================================================
+ * Symbol Resolution Walker (Phase E.2)
+ *
+ * Resolves HB_ET_VARIABLE nodes to their HB_HVAR declarations by
+ * searching the function's local/static/field/memvar lists.
+ * ================================================================ */
+
+/* Search a variable list for a name */
+static PHB_HVAR hb_compASTFindVar( PHB_HVAR pVarList, const char * szName )
+{
+   while( pVarList )
+   {
+      if( pVarList->szName && strcmp( pVarList->szName, szName ) == 0 )
+         return pVarList;
+      pVarList = pVarList->pNext;
+   }
+   return NULL;
+}
+
+typedef struct
+{
+   PHB_HFUNC  pFunc;      /* current function being resolved */
+   HB_SIZE    nResolved;  /* count of resolved variables */
+} HB_AST_RESOLVE_CARGO;
+
+static HB_BOOL hb_compASTResolveVisitor( PHB_EXPR pExpr, void * cargo )
+{
+   HB_AST_RESOLVE_CARGO * pCargo = ( HB_AST_RESOLVE_CARGO * ) cargo;
+
+   if( pExpr->ExprType == HB_ET_VARIABLE && pExpr->value.asSymbol.name )
+   {
+      PHB_HVAR pVar;
+
+      /* Search in order: locals → statics → fields → memvars → detached */
+      pVar = hb_compASTFindVar( pCargo->pFunc->pLocals, pExpr->value.asSymbol.name );
+      if( ! pVar )
+         pVar = hb_compASTFindVar( pCargo->pFunc->pStatics, pExpr->value.asSymbol.name );
+      if( ! pVar )
+         pVar = hb_compASTFindVar( pCargo->pFunc->pFields, pExpr->value.asSymbol.name );
+      if( ! pVar )
+         pVar = hb_compASTFindVar( pCargo->pFunc->pMemvars, pExpr->value.asSymbol.name );
+      if( ! pVar )
+         pVar = hb_compASTFindVar( pCargo->pFunc->pDetached, pExpr->value.asSymbol.name );
+
+      if( pVar )
+      {
+         pExpr->pSymbol = pVar;
+         pCargo->nResolved++;
+      }
+   }
+
+   return HB_TRUE; /* always continue into children */
+}
+
+/* Resolve all variable references in a function's retained AST.
+ * Returns the number of variables resolved.
+ */
+HB_SIZE hb_compASTResolveSymbols( PHB_HFUNC pFunc )
+{
+   HB_AST_RESOLVE_CARGO cargo;
+
+   if( ! pFunc->pBodyAST )
+      return 0;
+
+   cargo.pFunc = pFunc;
+   cargo.nResolved = 0;
+
+   {
+      PHB_EXPR pStmt = pFunc->pBodyAST;
+      while( pStmt )
+      {
+         hb_compExprWalkNode( pStmt,
+                              ( PHB_AST_VISITOR ) hb_compASTResolveVisitor,
+                              &cargo );
+         pStmt = pStmt->pNext;
+      }
+   }
+
+   return cargo.nResolved;
 }

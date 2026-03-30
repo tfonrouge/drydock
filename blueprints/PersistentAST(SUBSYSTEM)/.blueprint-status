@@ -1,1 +1,1 @@
-ACTIVE: E.1 foundation + E.2 walker/printer done. `-da` flag dumps AST. Symbol resolution pending.
+ACTIVE: E.1 foundation + E.2 walker/printer/symbol-resolution done. `-da` shows resolved variables.

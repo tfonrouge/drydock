@@ -434,6 +434,7 @@ typedef struct HB_EXPR_
    HB_EXPRTYPE ExprType;      /* internal expression type */
    HB_USHORT   ValType;       /* language level value type */
    struct HB_EXPR_ * pNext;   /* next expression in the list of expressions */
+   PHB_HVAR    pSymbol;       /* resolved declaration (PersistentAST E.2) [drydock] */
 } HB_EXPR, * PHB_EXPR;
 
 typedef struct HB_ENUMERATOR_
