@@ -444,3 +444,122 @@ HB_SIZE hb_compASTResolveSymbols( PHB_HFUNC pFunc )
 
    return cargo.nResolved;
 }
+
+
+/* ================================================================
+ * Type Checking Walker (GradualTyping Phase F.1)
+ *
+ * Checks assignments to typed variables for type compatibility.
+ * Emits WARNINGS (not errors) — code still compiles.
+ * ================================================================ */
+
+/* Map HB_EXPR type to cType character */
+static char hb_compASTExprTypeChar( PHB_EXPR pExpr )
+{
+   switch( pExpr->ExprType )
+   {
+      case HB_ET_STRING:    return 'C';
+      case HB_ET_NUMERIC:   return 'N';
+      case HB_ET_DATE:      return 'D';
+      case HB_ET_TIMESTAMP: return 'T';
+      case HB_ET_LOGICAL:   return 'L';
+      case HB_ET_ARRAY:     return 'A';
+      case HB_ET_HASH:      return 'H';
+      case HB_ET_CODEBLOCK: return 'B';
+      case HB_ET_NIL:       return 'U';
+      case HB_ET_SELF:      return 'O';
+      default:              return 0; /* unknown/complex — can't check */
+   }
+}
+
+/* Type name for diagnostics */
+static const char * hb_compASTTypeName( char cType )
+{
+   switch( cType )
+   {
+      case 'C': return "String";
+      case 'N': return "Numeric";
+      case 'D': return "Date";
+      case 'T': return "Timestamp";
+      case 'L': return "Logical";
+      case 'A': return "Array";
+      case 'H': return "Hash";
+      case 'B': return "Block";
+      case 'O': return "Object";
+      case 'U': return "NIL";
+      default:  return "Unknown";
+   }
+}
+
+typedef struct
+{
+   HB_COMP_DECL;
+   PHB_HFUNC  pFunc;
+   HB_SIZE    nWarnings;
+} HB_AST_TYPECHECK_CARGO;
+
+static HB_BOOL hb_compASTTypeCheckVisitor( PHB_EXPR pExpr, void * cargo )
+{
+   HB_AST_TYPECHECK_CARGO * pCargo = ( HB_AST_TYPECHECK_CARGO * ) cargo;
+
+   /* Check assignments to typed variables */
+   if( pExpr->ExprType == HB_EO_ASSIGN )
+   {
+      PHB_EXPR pLeft = pExpr->value.asOperator.pLeft;
+      PHB_EXPR pRight = pExpr->value.asOperator.pRight;
+
+      if( pLeft && pLeft->ExprType == HB_ET_VARIABLE &&
+          pLeft->pSymbol && pLeft->pSymbol->cType != 0 && pRight )
+      {
+         char cRhsType = hb_compASTExprTypeChar( pRight );
+
+         /* Only warn when RHS type is known AND different from declared */
+         if( cRhsType != 0 && cRhsType != pLeft->pSymbol->cType )
+         {
+            /* NIL is always allowed for nullable types */
+            if( cRhsType != 'U' )
+            {
+               char szMsg[ 128 ];
+               hb_snprintf( szMsg, sizeof( szMsg ),
+                  "Type mismatch: '%s' declared AS %s, assigned %s",
+                  pLeft->pSymbol->szName,
+                  hb_compASTTypeName( pLeft->pSymbol->cType ),
+                  hb_compASTTypeName( cRhsType ) );
+               hb_compGenWarning( pCargo->HB_COMP_PARAM, hb_comp_szWarnings,
+                                  'W', HB_COMP_WARN_ASSIGN_TYPE, szMsg, NULL );
+               pCargo->nWarnings++;
+            }
+         }
+      }
+   }
+
+   return HB_TRUE; /* continue into children */
+}
+
+/* Run type checking on a function's retained AST.
+ * Returns the number of warnings emitted.
+ */
+HB_SIZE hb_compASTTypeCheck( HB_COMP_DECL, PHB_HFUNC pFunc )
+{
+   HB_AST_TYPECHECK_CARGO cargo;
+
+   if( ! pFunc->pBodyAST )
+      return 0;
+
+   cargo.HB_COMP_PARAM = HB_COMP_PARAM;
+   cargo.pFunc = pFunc;
+   cargo.nWarnings = 0;
+
+   {
+      PHB_EXPR pStmt = pFunc->pBodyAST;
+      while( pStmt )
+      {
+         hb_compExprWalkNode( pStmt,
+                              ( PHB_AST_VISITOR ) hb_compASTTypeCheckVisitor,
+                              &cargo );
+         pStmt = pStmt->pNext;
+      }
+   }
+
+   return cargo.nWarnings;
+}

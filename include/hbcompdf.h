@@ -836,6 +836,7 @@ typedef struct _HB_COMP
    HB_BOOL           fPPT;                /* flag indicating, is .ppt output needed */
    HB_BOOL           fPCodeDis;           /* pcode disassembly output (-dp) [drydock] */
    HB_BOOL           fRetainAST;          /* retain AST after pcode emit (PersistentAST Phase E) [drydock] */
+   HB_BOOL           fTypeCheck;          /* compile-time type warnings (-kt) (GradualTyping Phase F) [drydock] */
    HB_BOOL           fLineNumbers;        /* holds if we need pcodes with line numbers */
    HB_BOOL           fAnyWarning;         /* holds if there was any warning during the compilation process */
    HB_BOOL           fAutoMemvarAssume;   /* holds if undeclared variables are automatically assumed MEMVAR (-a)*/

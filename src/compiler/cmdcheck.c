@@ -603,6 +603,12 @@ static const char * hb_compChkParseSwitch( HB_COMP_DECL, const char * szSwitch,
                         HB_COMP_PARAM->supported |= HB_COMPFLAG_USERCP;
                      break;
 
+                  case 'T':
+                     /* Drydock: -kt = enable compile-time type warnings [drydock F.1] */
+                     HB_COMP_PARAM->fRetainAST = HB_TRUE;
+                     HB_COMP_PARAM->fTypeCheck = HB_TRUE;
+                     break;
+
                   default:
                      ch = -1;
                      --szSwPtr;

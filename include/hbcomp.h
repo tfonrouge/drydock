@@ -315,6 +315,7 @@ extern void hb_compGenDis( HB_COMP_DECL );                  /* pcode disassembly
 extern void hb_compExprFreeAST( PHB_EXPR pExpr );           /* free retained AST nodes [drydock E.1] */
 extern void hb_compASTPrint( PHB_HFUNC pFunc, FILE * yyc ); /* print retained AST (debug) [drydock E.2] */
 extern HB_SIZE hb_compASTResolveSymbols( PHB_HFUNC pFunc ); /* resolve variable references [drydock E.2] */
+extern HB_SIZE hb_compASTTypeCheck( HB_COMP_DECL, PHB_HFUNC pFunc ); /* type check warnings [drydock F.1] */
 
 extern void hb_compGenBufPortObj( HB_COMP_DECL, HB_BYTE ** pBufPtr, HB_SIZE * pnSize ); /* generates the portable objects to memory buffer */
 

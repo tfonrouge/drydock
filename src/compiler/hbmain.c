@@ -4524,6 +4524,18 @@ static int hb_compCompile( HB_COMP_DECL, const char * szPrg, const char * szBuff
                pFunc = pFunc->pNext;
             }
 
+            /* Phase F.1: run type checker if -kt enabled */
+            if( HB_COMP_PARAM->fTypeCheck )
+            {
+               pFunc = HB_COMP_PARAM->functions.pFirst;
+               while( pFunc )
+               {
+                  if( ( pFunc->funFlags & HB_FUNF_FILE_DECL ) == 0 )
+                     hb_compASTTypeCheck( HB_COMP_PARAM, pFunc );
+                  pFunc = pFunc->pNext;
+               }
+            }
+
             /* Print AST with resolved symbols */
             pFunc = HB_COMP_PARAM->functions.pFirst;
             fprintf( stdout, "; Drydock AST dump: %s\n\n",

@@ -34,7 +34,7 @@
 | Phase | Name | Mode | Status | Owner | Blocked By |
 |-------|------|------|--------|-------|------------|
 | E | [PersistentAST](PersistentAST(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :yellow_circle: ACTIVE | @tfonrouge | -- (Tier 2 root) |
-| F | [GradualTyping](GradualTyping(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
+| F | [GradualTyping](GradualTyping(FEATURE)/BRIEF.md) | FEATURE | :yellow_circle: ACTIVE | @tfonrouge | PersistentAST (done) |
 | G | [Optimizer](Optimizer(SUBSYSTEM)/BRIEF.md) | SUBSYSTEM | :blue_circle: PLANNING | -- | PersistentAST |
 | H | [ModuleSystem](ModuleSystem(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST |
 | I | [LSPServer](LSPServer(FEATURE)/BRIEF.md) | FEATURE | :blue_circle: PLANNING | -- | PersistentAST + GradualTyping |
@@ -95,3 +95,4 @@
 | ComputedGoto Phase 1 | 2026-03-29 | Dispatch table + 182 opcode labels. Foundation for threaded dispatch. |
 | PersistentAST E.1 | 2026-03-29 | AST retention foundation: pBodyAST field on HB_HFUNC, retain-on-dealloc, bulk cleanup. OFF by default. |
 | PersistentAST E.2 | 2026-03-29 | AST walker + printer + symbol resolution. `drydock -da` dumps AST with `[resolved→X]` annotations. |
+| GradualTyping F.1 | 2026-03-29 | Compile-time type warnings via `-kt`. Detects type mismatches in assignments to typed variables. |
