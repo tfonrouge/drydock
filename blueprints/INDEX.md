@@ -95,4 +95,4 @@
 | ComputedGoto Phase 1 | 2026-03-29 | Dispatch table + 182 opcode labels. Foundation for threaded dispatch. |
 | PersistentAST E.1 | 2026-03-29 | AST retention foundation: pBodyAST field on HB_HFUNC, retain-on-dealloc, bulk cleanup. OFF by default. |
 | PersistentAST E.2 | 2026-03-29 | AST walker + printer + symbol resolution. `drydock -da` dumps AST with `[resolved→X]` annotations. |
-| GradualTyping F.1 | 2026-03-29 | Compile-time type warnings via `-kt`. Detects type mismatches in assignments to typed variables. |
+| GradualTyping F.1 | 2026-03-29 | Compile-time type warnings via `-kt -w3`. Assignment mismatch (W0008) + operator incompatibility (W0010). Date+numeric allowed. |

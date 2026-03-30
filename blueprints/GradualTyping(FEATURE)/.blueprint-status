@@ -1,1 +1,1 @@
-ACTIVE: F.1 done (compile-time type warnings via -kt). F.2-F.3 pending.
+ACTIVE: F.1 mostly done (assignment + operator checks). Return/call arg checks deferred. F.2-F.3 pending.

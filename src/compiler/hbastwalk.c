@@ -502,7 +502,7 @@ static HB_BOOL hb_compASTTypeCheckVisitor( PHB_EXPR pExpr, void * cargo )
 {
    HB_AST_TYPECHECK_CARGO * pCargo = ( HB_AST_TYPECHECK_CARGO * ) cargo;
 
-   /* Check assignments to typed variables */
+   /* F.1a: Check assignments to typed variables */
    if( pExpr->ExprType == HB_EO_ASSIGN )
    {
       PHB_EXPR pLeft = pExpr->value.asOperator.pLeft;
@@ -527,6 +527,41 @@ static HB_BOOL hb_compASTTypeCheckVisitor( PHB_EXPR pExpr, void * cargo )
                   hb_compASTTypeName( cRhsType ) );
                hb_compGenWarning( pCargo->HB_COMP_PARAM, hb_comp_szWarnings,
                                   'W', HB_COMP_WARN_ASSIGN_TYPE, szMsg, NULL );
+               pCargo->nWarnings++;
+            }
+         }
+      }
+   }
+
+   /* F.1d: Check binary operator type compatibility */
+   if( pExpr->ExprType >= HB_EO_PLUS && pExpr->ExprType <= HB_EO_POWER )
+   {
+      PHB_EXPR pLeft = pExpr->value.asOperator.pLeft;
+      PHB_EXPR pRight = pExpr->value.asOperator.pRight;
+
+      if( pLeft && pRight )
+      {
+         char cLeft = hb_compASTExprTypeChar( pLeft );
+         char cRight = hb_compASTExprTypeChar( pRight );
+
+         /* Only check when both types are known */
+         if( cLeft != 0 && cRight != 0 && cLeft != cRight )
+         {
+            /* Some cross-type operations are valid: date+numeric, numeric+date */
+            HB_BOOL fValid = HB_FALSE;
+
+            if( ( cLeft == 'D' || cLeft == 'T' ) && cRight == 'N' )
+               fValid = HB_TRUE; /* date/timestamp +/- numeric */
+            else if( cLeft == 'N' && ( cRight == 'D' || cRight == 'T' ) )
+               fValid = HB_TRUE; /* numeric + date/timestamp */
+
+            if( ! fValid )
+            {
+               /* Warning template: "Incompatible operand types '%s' and '%s'" */
+               hb_compGenWarning( pCargo->HB_COMP_PARAM, hb_comp_szWarnings,
+                                  'W', HB_COMP_WARN_OPERANDS_INCOMPATIBLE,
+                                  hb_compASTTypeName( cLeft ),
+                                  hb_compASTTypeName( cRight ) );
                pCargo->nWarnings++;
             }
          }
