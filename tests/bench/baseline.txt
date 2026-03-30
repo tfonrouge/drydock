@@ -1,22 +1,22 @@
 # Drydock benchmark baseline
 # Drydock 0.0.1dev (Harbour 3.2 compatible)
-# Commit: f87a281  2026-03-29 14:36
+# Commit: 38eb71b  2026-03-29 23:21
 #
 # name	ms	description
-array_create_fill	311	
-array_map	29	
-array_read	49	
-gc_array_alloc	30	
-gc_hash_alloc	8	
-gc_mixed_gen	39	
-gc_string_alloc	41	
-loop_int	269	
-oo_data_read	36	
-oo_data_write	40	
-oo_method_call	94	
-oo_polymorphic	105	
-oo_tostring	164	
-string_concat	22	
-string_substr	55	
-string_upper_func	21	
-string_upper_method	45
+array_create_fill	552	
+array_map	44	
+array_read	84	
+gc_array_alloc	44	
+gc_hash_alloc	10	
+gc_mixed_gen	82	
+gc_string_alloc	62	
+loop_int	481	
+oo_data_read	64	
+oo_data_write	60	
+oo_method_call	154	
+oo_polymorphic	168	
+oo_tostring	245	
+string_concat	34	
+string_substr	79	
+string_upper_func	31	
+string_upper_method	67	
