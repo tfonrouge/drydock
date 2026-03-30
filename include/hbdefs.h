@@ -1695,6 +1695,11 @@ typedef int           HB_COLOR;
 #  define HB_UNLIKELY( x )  ( x )
 #endif
 
+/* Computed goto / threaded dispatch for VM interpreter [drydock] */
+#if defined( __GNUC__ ) || defined( __clang__ ) || defined( __INTEL_COMPILER )
+#  define HB_VM_THREADED_DISPATCH
+#endif
+
 #include "hbtrace.h"
 
 #endif /* HB_DEFS_H_ */
