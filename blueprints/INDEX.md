@@ -94,3 +94,4 @@
 | DrydockObject D.8 | 2026-03-29 | DDClass — class reflection objects with singletons. `classOf():name()`, `:methods()`, `:super()`, `:data()`. DrydockObject reduced to 3 behavior methods. |
 | ComputedGoto Phase 1 | 2026-03-29 | Dispatch table + 182 opcode labels. Foundation for threaded dispatch. |
 | PersistentAST E.1 | 2026-03-29 | AST retention foundation: pBodyAST field on HB_HFUNC, retain-on-dealloc, bulk cleanup. OFF by default. |
+| PersistentAST E.2 | 2026-03-29 | AST walker + printer visitor. `drydock -da` dumps retained AST to stdout. |

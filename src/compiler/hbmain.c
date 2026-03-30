@@ -4510,6 +4510,20 @@ static int hb_compCompile( HB_COMP_DECL, const char * szPrg, const char * szBuff
          /* Drydock: pcode disassembly output (-dp) [drydock] */
          if( HB_COMP_PARAM->fPCodeDis )
             hb_compGenDis( HB_COMP_PARAM );
+
+         /* Drydock: AST dump output (-da) [drydock E.2] */
+         if( HB_COMP_PARAM->fRetainAST )
+         {
+            PHB_HFUNC pFunc = HB_COMP_PARAM->functions.pFirst;
+            fprintf( stdout, "; Drydock AST dump: %s\n\n",
+                     HB_COMP_PARAM->szFile ? HB_COMP_PARAM->szFile : "(unknown)" );
+            while( pFunc )
+            {
+               if( ( pFunc->funFlags & HB_FUNF_FILE_DECL ) == 0 )
+                  hb_compASTPrint( pFunc, stdout );
+               pFunc = pFunc->pNext;
+            }
+         }
       }
       else
          fGenCode = HB_FALSE;

@@ -1,1 +1,1 @@
-ACTIVE: E.1 foundation done (pBodyAST field, retain-on-dealloc, bulk cleanup). AST retention OFF by default.
+ACTIVE: E.1 foundation + E.2 walker/printer done. `-da` flag dumps AST. Symbol resolution pending.

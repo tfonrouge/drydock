@@ -262,6 +262,12 @@ static const char * hb_compChkParseSwitch( HB_COMP_DECL, const char * szSwitch,
                HB_COMP_PARAM->fPCodeDis = HB_TRUE;
                szSwPtr += 2;
             }
+            else if( HB_TOUPPER( szSwPtr[ 1 ] ) == 'A' )
+            {
+               /* Drydock: -da = dump retained AST to stdout [drydock E.2] */
+               HB_COMP_PARAM->fRetainAST = HB_TRUE;
+               szSwPtr += 2;
+            }
             else
                szSwPtr = hb_compChkAddDefine( HB_COMP_PARAM, szSwPtr + 1, HB_TRUE, fEnv );
             break;
